@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhysicsHub THPT - Nền Tảng Học Vật Lí Toàn Diện Lớp 10, 11, 12</title>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- KaTeX for beautiful math formulas (CDN) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+</head>
+<body>
+
+  <!-- HEADER & NAVIGATION -->
+  <header class="site-header">
+    <div class="container flex items-center justify-between" style="height: 68px;">
+      <!-- Logo -->
+      <a href="#" class="nav-logo">
+        <div style="background: linear-gradient(135deg, #0284c7, #6366f1); border-radius: 10px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: white;">
+          <i data-lucide="atom"></i>
+        </div>
+        <span>Physics<span style="color: #6366f1;">Hub</span> <span class="badge badge-accent" style="font-size: 0.65rem; vertical-align: middle;">THPT 2025</span></span>
+      </a>
+
+      <!-- Grade Selector (10, 11, 12) -->
+      <div class="grade-selector">
+        <button class="grade-select-btn active" data-grade="10">Lớp 10</button>
+        <button class="grade-select-btn" data-grade="11">Lớp 11</button>
+        <button class="grade-select-btn" data-grade="12">Lớp 12</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs-wrapper">
+        <button class="nav-tab-btn active" data-tab="curriculum">
+          <i data-lucide="book-open"></i>
+          <span>Lý Thuyết</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="simulations">
+          <i data-lucide="flask-conical"></i>
+          <span>Thí Nghiệm Ảo</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="quiz">
+          <i data-lucide="check-square"></i>
+          <span>Luyện Đề & Thi Thử</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="formulas">
+          <i data-lucide="scroll"></i>
+          <span>Sổ Tay Công Thức</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="tools">
+          <i data-lucide="calculator"></i>
+          <span>Máy Tính & Hằng Số</span>
+        </button>
+        <button class="nav-tab-btn" data-tab="roadmap">
+          <i data-lucide="target"></i>
+          <span>Lộ Trình 8+</span>
+        </button>
+      </nav>
+
+      <!-- Action Utilities -->
+      <div class="flex items-center gap-2">
+        <button class="btn-icon" id="theme-toggle" title="Đổi giao diện Sáng / Tối">
+          <i data-lucide="moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="container" style="padding-top: 1.5rem; padding-bottom: 3rem;">
+
+    <!-- ==================== TAB 1: CURRICULUM ==================== -->
+    <section class="tab-pane" id="tab-curriculum">
+      <!-- Hero Banner -->
+      <div class="hero-banner mb-6">
+        <div style="max-width: 680px; position: relative; z-index: 2;">
+          <span class="badge" style="background: rgba(255,255,255,0.25); color: #fff; margin-bottom: 0.75rem;">Chương trình Giáo Dục Phổ Thông 2018</span>
+          <h1 class="text-2xl font-bold" id="curriculum-grade-title">Vật Lí Lớp 10: Cơ Học & Năng Lượng</h1>
+          <p class="mt-2 text-sm" style="opacity: 0.9;" id="curriculum-grade-desc">Hệ thống hóa toàn bộ kiến thức cốt lõi, phương pháp tư duy và các bẫy đề thi hay gặp.</p>
+          <div class="flex items-center gap-3 mt-4">
+            <button class="btn" style="background: #ffffff; color: #0284c7; font-weight: 700;" onclick="document.querySelectorAll('.nav-tab-btn')[1].click()">
+              <i data-lucide="play-circle"></i>
+              <span>Vào Phòng Thí Nghiệm</span>
+            </button>
+            <button class="btn" style="background: rgba(255,255,255,0.2); color: #ffffff;" onclick="document.querySelectorAll('.nav-tab-btn')[2].click()">
+              <i data-lucide="award"></i>
+              <span>Làm Bài Kiểm Tra</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Curriculum Chapters Container -->
+      <div id="curriculum-chapters-container"></div>
+    </section>
+
+    <!-- ==================== TAB 2: VIRTUAL SIMULATIONS ==================== -->
+    <section class="tab-pane hidden" id="tab-simulations">
+      <!-- Sim Subnavigation -->
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button class="sim-nav-btn active" data-sim="pendulum">
+            <i data-lucide="activity"></i>
+            <span>1. Con Lắc Dao Động</span>
+          </button>
+          <button class="sim-nav-btn" data-sim="wave">
+            <i data-lucide="waves"></i>
+            <span>2. Giao Thoa Sóng Nước</span>
+          </button>
+          <button class="sim-nav-btn" data-sim="projectile">
+            <i data-lucide="crosshair"></i>
+            <span>3. Chuyển Động Ném</span>
+          </button>
+          <button class="sim-nav-btn" data-sim="circuit">
+            <i data-lucide="zap"></i>
+            <span>4. Mạch Điện Định Luật Ôm</span>
+          </button>
+          <button class="sim-nav-btn" data-sim="gas">
+            <i data-lucide="gauge"></i>
+            <span>5. Khí Lí Tưởng & Pit-tông</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SIM 1: PENDULUM -->
+      <div class="sim-view-card" id="sim-view-pendulum">
+        <div class="sim-container">
+          <div class="canvas-wrapper">
+            <canvas id="canvas-pendulum" width="760" height="420"></canvas>
+            <div class="flex items-center gap-3 mt-3">
+              <button class="btn btn-primary btn-sm" id="btn-pendulum-play">
+                <i data-lucide="play"></i> <span>Chạy / Tạm dừng</span>
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-pendulum-reset">
+                <i data-lucide="rotate-ccw"></i> <span>Đặt lại VTCB</span>
+              </button>
+            </div>
+          </div>
+          <div class="sim-sidebar">
+            <h3 class="font-bold text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <i data-lucide="sliders"></i> Điều Khiển Dao Động
+            </h3>
+            
+            <div class="control-group">
+              <label class="control-label">Mô hình con lắc</label>
+              <select class="input-field" id="sim-pendulum-mode">
+                <option value="simple">Con lắc đơn (Dây treo l)</option>
+                <option value="spring">Con lắc lò xo (Độ cứng k)</option>
+              </select>
+            </div>
+
+            <div id="group-pendulum-simple">
+              <div class="control-group mt-3">
+                <div class="control-label">
+                  <span>Chiều dài dây ($l$)</span>
+                  <span id="val-pendulum-length" class="font-mono text-sky-600">1.0 m</span>
+                </div>
+                <input type="range" class="range-slider" id="pendulum-length" min="0.4" max="1.8" step="0.1" value="1.0">
+              </div>
+            </div>
+
+            <div id="group-pendulum-spring" class="hidden">
+              <div class="control-group mt-3">
+                <div class="control-label">
+                  <span>Độ cứng lò xo ($k$)</span>
+                  <span id="val-pendulum-k" class="font-mono text-sky-600">50 N/m</span>
+                </div>
+                <input type="range" class="range-slider" id="pendulum-k" min="20" max="150" step="5" value="50">
+              </div>
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Khối lượng quả nặng ($m$)</span>
+                <span id="val-pendulum-mass" class="font-mono text-sky-600">0.5 kg</span>
+              </div>
+              <input type="range" class="range-slider" id="pendulum-mass" min="0.1" max="2.0" step="0.1" value="0.5">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Gia tốc trọng trường ($g$)</span>
+                <span id="val-pendulum-gravity" class="font-mono text-sky-600">9.8 m/s²</span>
+              </div>
+              <input type="range" class="range-slider" id="pendulum-gravity" min="1.6" max="25" step="0.2" value="9.8">
+            </div>
+
+            <div class="p-3 bg-sky-50 dark:bg-sky-950/30 rounded-xl text-xs text-sky-800 dark:text-sky-300 mt-2">
+              <strong>Gợi ý:</strong> Bạn có thể dùng chuột kéo thả trực tiếp quả nặng trên màn hình để thay đổi biên độ góc!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIM 2: WAVE -->
+      <div class="sim-view-card hidden" id="sim-view-wave">
+        <div class="sim-container">
+          <div class="canvas-wrapper">
+            <canvas id="canvas-wave" width="760" height="420"></canvas>
+            <div class="flex items-center gap-3 mt-3">
+              <button class="btn btn-primary btn-sm" id="btn-wave-play">
+                <i data-lucide="play"></i> <span>Chạy / Dừng</span>
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-wave-hyperbola">
+                <i data-lucide="git-commit"></i> <span>Bật/Tắt Đường Vân Cực Đại</span>
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-wave-reset">
+                <i data-lucide="rotate-ccw"></i> <span>Làm mới</span>
+              </button>
+            </div>
+          </div>
+          <div class="sim-sidebar">
+            <h3 class="font-bold text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <i data-lucide="sliders"></i> Thông Số Giao Thoa
+            </h3>
+
+            <div class="control-group mt-2">
+              <div class="control-label">
+                <span>Khoảng cách 2 nguồn ($S_1S_2$)</span>
+                <span id="val-wave-dist" class="font-mono text-sky-600">120 px</span>
+              </div>
+              <input type="range" class="range-slider" id="wave-dist" min="50" max="240" step="10" value="120">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Bước sóng ($\lambda$)</span>
+                <span id="val-wave-lambda" class="font-mono text-sky-600">24 px</span>
+              </div>
+              <input type="range" class="range-slider" id="wave-lambda" min="12" max="60" step="2" value="24">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Độ lệch pha ($\Delta\varphi$)</span>
+                <span id="val-wave-phase" class="font-mono text-sky-600">0° (Cùng pha)</span>
+              </div>
+              <input type="range" class="range-slider" id="wave-phase" min="0" max="180" step="45" value="0">
+            </div>
+
+            <div class="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl text-xs text-indigo-800 dark:text-indigo-300 mt-4">
+              <strong>Hiện tượng:</strong> Đường nét liền màu đỏ ở chính giữa là cực đại bậc 0 ($k=0$). Các đường nét đứt trắng là các vân cực đại bậc $k = \pm 1, \pm 2...$
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIM 3: PROJECTILE -->
+      <div class="sim-view-card hidden" id="sim-view-projectile">
+        <div class="sim-container">
+          <div class="canvas-wrapper">
+            <canvas id="canvas-projectile" width="760" height="420"></canvas>
+            <div class="flex items-center gap-3 mt-3">
+              <button class="btn btn-primary btn-sm" id="btn-proj-fire">
+                <i data-lucide="zap"></i> <span>Phát Bắn!</span>
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-proj-reset">
+                <i data-lucide="rotate-ccw"></i> <span>Chuẩn bị lại</span>
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-proj-clear">
+                <i data-lucide="trash-2"></i> <span>Xóa vết quỹ đạo</span>
+              </button>
+            </div>
+          </div>
+          <div class="sim-sidebar">
+            <h3 class="font-bold text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <i data-lucide="sliders"></i> Thông Số Ném
+            </h3>
+
+            <div class="control-group mt-2">
+              <div class="control-label">
+                <span>Góc bắn ($\alpha$)</span>
+                <span id="val-proj-angle" class="font-mono text-sky-600">45°</span>
+              </div>
+              <input type="range" class="range-slider" id="proj-angle" min="0" max="85" step="5" value="45">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Vận tốc ban đầu ($v_0$)</span>
+                <span id="val-proj-v0" class="font-mono text-sky-600">25 m/s</span>
+              </div>
+              <input type="range" class="range-slider" id="proj-v0" min="5" max="45" step="1" value="25">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Độ cao phát bắn ($h_0$)</span>
+                <span id="val-proj-h0" class="font-mono text-sky-600">10 m</span>
+              </div>
+              <input type="range" class="range-slider" id="proj-h0" min="0" max="30" step="2" value="10">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Gia tốc trọng trường ($g$)</span>
+                <span id="val-proj-g" class="font-mono text-sky-600">9.8 m/s²</span>
+              </div>
+              <input type="range" class="range-slider" id="proj-g" min="1.6" max="15" step="0.2" value="9.8">
+            </div>
+
+            <div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl text-xs text-emerald-800 dark:text-emerald-300 mt-2">
+              <strong>Khám phá:</strong> Khi $h_0 = 0$, góc bắn nào cho tầm xa lớn nhất? (Hãy thử nghiệm với góc $45^\circ$!).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIM 4: CIRCUIT -->
+      <div class="sim-view-card hidden" id="sim-view-circuit">
+        <div class="sim-container">
+          <div class="canvas-wrapper">
+            <canvas id="canvas-circuit" width="760" height="420"></canvas>
+            <div class="flex items-center gap-3 mt-3">
+              <button class="btn btn-primary btn-sm" id="btn-circuit-switch">
+                <i data-lucide="toggle-left"></i> <span>Đóng / Ngắt Khóa K</span>
+              </button>
+            </div>
+          </div>
+          <div class="sim-sidebar">
+            <h3 class="font-bold text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <i data-lucide="sliders"></i> Nguồn & Tải Điện
+            </h3>
+
+            <div class="control-group mt-2">
+              <div class="control-label">
+                <span>Suất điện động ($E$)</span>
+                <span id="val-circuit-emf" class="font-mono text-sky-600">12.0 V</span>
+              </div>
+              <input type="range" class="range-slider" id="circuit-emf" min="3" max="24" step="0.5" value="12">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Điện trở trong ($r$)</span>
+                <span id="val-circuit-r" class="font-mono text-sky-600">2.0 Ω</span>
+              </div>
+              <input type="range" class="range-slider" id="circuit-r" min="0.2" max="5.0" step="0.2" value="2.0">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Biến trở ngoài ($R$)</span>
+                <span id="val-circuit-R" class="font-mono text-sky-600">10.0 Ω</span>
+              </div>
+              <input type="range" class="range-slider" id="circuit-R" min="1.0" max="30.0" step="0.5" value="10.0">
+            </div>
+
+            <div class="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl text-xs text-amber-800 dark:text-amber-300 mt-4">
+              <strong>Hiện tượng:</strong> Khi giảm $R$, dòng điện $I$ tăng mạnh nhưng điện áp $U = E - Ir$ sụt giảm. Quan sát bóng đèn sáng rực khi $I$ tăng!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIM 5: GAS -->
+      <div class="sim-view-card hidden" id="sim-view-gas">
+        <div class="sim-container">
+          <div class="canvas-wrapper">
+            <canvas id="canvas-gas" width="760" height="420"></canvas>
+          </div>
+          <div class="sim-sidebar">
+            <h3 class="font-bold text-base text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <i data-lucide="sliders"></i> Trạng Thái Khí Lí Tưởng
+            </h3>
+
+            <div class="control-group mt-2">
+              <div class="control-label">
+                <span>Nhiệt độ tuyệt đối ($T$)</span>
+                <span id="val-gas-temp" class="font-mono text-sky-600">300 K (27°C)</span>
+              </div>
+              <input type="range" class="range-slider" id="gas-temp" min="150" max="600" step="10" value="300">
+            </div>
+
+            <div class="control-group mt-3">
+              <div class="control-label">
+                <span>Vị trí Pit-tông (Thể tích $V$)</span>
+                <span id="val-gas-volume" class="font-mono text-sky-600">6.5 L</span>
+              </div>
+              <input type="range" class="range-slider" id="gas-volume" min="0.35" max="0.95" step="0.05" value="0.65">
+            </div>
+
+            <div class="p-3 bg-sky-50 dark:bg-sky-950/30 rounded-xl text-xs text-sky-800 dark:text-sky-300 mt-4">
+              <strong>Quy luật:</strong> Nén pit-tông (giảm thể tích $V$) làm mật độ phân tử tăng cao, tần số va chạm lên thành bình tăng &rarr; áp suất $p$ tăng vọt!
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: QUIZ & EXAM ENGINE ==================== -->
+    <section class="tab-pane hidden" id="tab-quiz">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <div>
+          <h2 class="text-xl font-bold">Hệ Thống Luyện Đề & Thi Thử Chuẩn 2025</h2>
+          <p class="text-slate-500 text-sm">Rèn luyện phản xạ với đầy đủ 3 dạng thức trắc nghiệm mới nhất của Bộ Giáo Dục.</p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button class="btn btn-outline btn-sm" onclick="window.quizEngine.startQuiz('grade10')">Đề Lớp 10</button>
+          <button class="btn btn-outline btn-sm" onclick="window.quizEngine.startQuiz('grade11')">Đề Lớp 11</button>
+          <button class="btn btn-outline btn-sm" onclick="window.quizEngine.startQuiz('grade12')">Đề Lớp 12</button>
+          <button class="btn btn-primary btn-sm flex items-center gap-1.5" onclick="window.quizEngine.startQuiz('national')">
+            <i data-lucide="award"></i>
+            <span>Thi Thử THPT Quốc Gia</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="quiz-content-area"></div>
+    </section>
+
+    <!-- ==================== TAB 4: FORMULA HANDBOOK ==================== -->
+    <section class="tab-pane hidden" id="tab-formulas">
+      <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-xl font-bold">Sổ Tay Công Thức Toàn Diện (10, 11, 12)</h2>
+          <p class="text-slate-500 text-sm">Tìm kiếm nhanh công thức, ý nghĩa đại lượng, đơn vị SI và bẫy trắc nghiệm.</p>
+        </div>
+        <div style="min-width: 280px; position: relative;">
+          <input type="text" id="formula-search" class="input-field w-full" placeholder="Tìm kiếm công thức (vd: chu kỳ, ohm, bảo toàn)...">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="formulas-list-container"></div>
+    </section>
+
+    <!-- ==================== TAB 5: TOOLS & CALCULATOR ==================== -->
+    <section class="tab-pane hidden" id="tab-tools">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Card 1: Máy tính nhanh -->
+        <div class="chapter-card">
+          <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
+            <i data-lucide="calculator" class="text-sky-600"></i>
+            <span>Máy Tính Dao Động Con Lắc Lò Xo</span>
+          </h3>
+          <p class="text-xs text-slate-500 mb-4">Nhập khối lượng $m$, độ cứng $k$ và biên độ $A$ để tính nhanh toàn bộ đặc trưng dao động.</p>
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Khối lượng m (kg)</label>
+              <input type="number" id="calc-spring-m" class="input-field w-full mt-1" value="0.2" step="0.05">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Độ cứng k (N/m)</label>
+              <input type="number" id="calc-spring-k" class="input-field w-full mt-1" value="80" step="5">
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Biên độ A (cm)</label>
+              <input type="number" id="calc-spring-A" class="input-field w-full mt-1" value="5" step="1">
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm mt-4 w-full" onclick="window.calculateSpring()">Tính Toán Ngay</button>
+          <div id="calc-spring-result" class="mt-3"></div>
+        </div>
+
+        <!-- Card 2: Chuyển đổi đơn vị -->
+        <div class="chapter-card">
+          <h3 class="font-bold text-lg mb-3 flex items-center gap-2">
+            <i data-lucide="refresh-cw" class="text-emerald-600"></i>
+            <span>Bộ Chuyển Đổi Đơn Vị Vật Lí Chuẩn</span>
+          </h3>
+          <p class="text-xs text-slate-500 mb-4">Đổi nhanh giữa các đơn vị đo vận tốc, áp suất, nhiệt độ, năng lượng.</p>
+
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Loại đại lượng</label>
+              <select id="unit-type" class="input-field w-full mt-1" onchange="window.updateUnitOptions()">
+                <option value="speed">Vận tốc (Speed)</option>
+                <option value="energy">Năng lượng (Energy)</option>
+                <option value="temp">Nhiệt độ (Temperature)</option>
+                <option value="pressure">Áp suất (Pressure)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Giá trị cần đổi</label>
+              <input type="number" id="unit-val" class="input-field w-full mt-1" value="72" oninput="window.convertUnit()">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Từ đơn vị</label>
+              <select id="unit-from" class="input-field w-full mt-1" onchange="window.convertUnit()"></select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500">Sang đơn vị</label>
+              <select id="unit-to" class="input-field w-full mt-1" onchange="window.convertUnit()"></select>
+            </div>
+          </div>
+
+          <div class="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-between border border-emerald-200 mt-4">
+            <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">Kết quả:</span>
+            <span class="text-lg font-bold text-emerald-700 dark:text-emerald-400 font-mono" id="unit-result">20</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bảng hằng số vật lí -->
+      <div class="chapter-card mt-6">
+        <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
+          <i data-lucide="database" class="text-indigo-600"></i>
+          <span>Bảng Các Hằng Số Vật Lí Chuẩn Thường Gặp Trong Đề Thi</span>
+        </h3>
+        <p class="text-xs text-slate-500 mb-4">Các hằng số cơ bản được sử dụng trong các đề thi THPT Quốc gia và đề thi học sinh giỏi.</p>
+        <div style="overflow-x: auto;">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b text-slate-500 text-left">
+                <th class="py-2 px-3">Tên Hằng Số</th>
+                <th class="py-2 px-3">Kí Hiệu</th>
+                <th class="py-2 px-3">Giá Trị</th>
+                <th class="py-2 px-3">Đơn Vị</th>
+                <th class="py-2 px-3">Ý Nghĩa Thực Tế</th>
+              </tr>
+            </thead>
+            <tbody id="constants-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: ROADMAP 8+ ==================== -->
+    <section class="tab-pane hidden" id="tab-roadmap">
+      <div class="chapter-card mb-6">
+        <div class="flex items-center gap-3">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="map"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold">Lộ Trình Ôn Thi THPT Quốc Gia - Bức Phá 8.5+ Trong 30 Ngày</h2>
+            <p class="text-slate-500 text-sm">Chiến lược phân bổ thời gian và trọng tâm bám sát cấu trúc đề thi mới nhất.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-start gap-4">
+          <div class="chapter-badge">1</div>
+          <div>
+            <h4 class="font-bold text-base text-sky-600">Giai đoạn 1 (Ngày 1 - 10): Quét Sạch Lý Thuyết & Công Thức Cốt Lõi</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">Ôn kỹ phần Vật lí nhiệt, Khí lí tưởng và Hạt nhân lớp 12 (chiếm tỉ trọng cao trong cấu trúc mới). Sử dụng Sổ tay công thức để học thuộc ý nghĩa và đơn vị từng đại lượng.</p>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-start gap-4">
+          <div class="chapter-badge">2</div>
+          <div>
+            <h4 class="font-bold text-base text-indigo-600">Giai đoạn 2 (Ngày 11 - 20): Rèn Phản Xạ Thí Nghiệm & Đồ Thị</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">Luyện tập trên Phòng Thí Nghiệm Ảo của PhysicsHub để hiểu bản chất con lắc, giao thoa sóng và định luật khí. Đây là phần các câu hỏi Đúng/Sai (Phần II) rất hay khai thác để gài bẫy.</p>
+          </div>
+        </div>
+
+        <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-start gap-4">
+          <div class="chapter-badge">3</div>
+          <div>
+            <h4 class="font-bold text-base text-emerald-600">Giai đoạn 3 (Ngày 21 - 30): Luyện Đề Bấm Giờ Thực Chiến 50 Phút</h4>
+            <p class="text-sm text-slate-600 dark:text-slate-300 mt-1">Mỗi ngày giải 1 đề thi thử chuẩn 3 phần. Tập trung rà soát lỗi sai ở phần trả lời ngắn (chú ý làm tròn số thập phân và đổi đúng đơn vị SI).</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: CHI TIẾT BÀI HỌC -->
+  <div class="modal-overlay hidden" id="lesson-modal">
+    <div class="modal-card">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div>
+          <span class="badge badge-primary text-xs">Lý Thuyết Trọng Tâm</span>
+          <h2 class="text-lg font-bold mt-1" id="lesson-modal-title">Tiêu đề bài học</h2>
+        </div>
+        <button class="btn-icon" onclick="window.closeLessonModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <p class="text-sm text-slate-500 italic mt-3" id="lesson-modal-summary"></p>
+      <div class="lesson-content mt-4 leading-relaxed text-sm space-y-4" id="lesson-modal-body"></div>
+      <div id="lesson-modal-tips"></div>
+
+      <div class="mt-6 flex justify-end">
+        <button class="btn btn-primary btn-sm" onclick="window.closeLessonModal()">Đã Hiểu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: KẾT QUẢ THI THỬ -->
+  <div class="modal-overlay hidden" id="result-modal">
+    <div class="modal-card" style="max-width: 480px; text-align: center;">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+        <i data-lucide="award" style="width: 32px; height: 32px;"></i>
+      </div>
+      <h3 class="text-xl font-bold">Kết Quả Bài Thi Của Bạn</h3>
+      <div class="text-4xl font-extrabold text-sky-600 my-3 font-mono" id="res-score">8.5</div>
+      <div id="res-details" class="text-sm text-slate-600 dark:text-slate-300"></div>
+      <p class="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-200" id="res-feedback"></p>
+      
+      <div class="mt-6 flex justify-center gap-3">
+        <button class="btn btn-outline" onclick="document.getElementById('result-modal').classList.add('hidden')">Xem Chi Tiết Lời Giải</button>
+        <button class="btn btn-primary" onclick="document.getElementById('result-modal').classList.add('hidden'); window.quizEngine.resetQuiz();">Làm Lại Đề Này</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts Data & Logic -->
+  <script src="js/data/curriculum.js"></script>
+  <script src="js/data/formulaData.js"></script>
+  <script src="js/data/quizData.js"></script>
+  <script src="js/simulations/pendulum.js"></script>
+  <script src="js/simulations/wave.js"></script>
+  <script src="js/simulations/projectile.js"></script>
+  <script src="js/simulations/circuit.js"></script>
+  <script src="js/simulations/gas.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/quizEngine.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // Khởi tạo icon
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) window.lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
