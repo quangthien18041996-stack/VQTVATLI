@@ -35,9 +35,9 @@ export default function HeroBanner({ onSelectModule }) {
     },
     {
       id: 'part4',
-      title: 'Phần 4: Xác Suất Có Điều Kiện & Bayes',
+      title: 'Phần 4: Xác Suất Có Điều Kiện',
       tag: 'SGK Chương VI (Tập 2)',
-      desc: 'Mô hình cây xác suất Bayes động ứng dụng trong xét nghiệm y tế, chẩn đoán bệnh và phân tích dữ liệu.',
+      desc: 'Mô phỏng Monty Hall 3 cánh cửa, bảng 2x2, sơ đồ cây xác suất động và định lý Bayes trong chẩn đoán y tế.',
       icon: GitBranch,
       accentBg: 'bg-purple-50 text-purple-600 border-purple-200',
       borderHover: 'hover:border-purple-400 hover:shadow-purple-500/10',

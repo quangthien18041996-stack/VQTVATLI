@@ -58,7 +58,7 @@ export default function Sidebar({
     { 
       id: 'part4', 
       num: '4', 
-      title: 'Xác Suất & Định Lý Bayes', 
+      title: 'Xác Suất Có Điều Kiện', 
       chapter: 'Chương VI (Tập 2)',
       icon: GitBranch,
       accent: 'from-purple-600 to-indigo-500'
