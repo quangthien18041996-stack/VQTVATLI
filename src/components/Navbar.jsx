@@ -3,10 +3,10 @@ import { Sparkles, Globe, Share2, Layers, BookOpen, HelpCircle } from 'lucide-re
 
 export default function Navbar({ activeModule, onSelectModule, onOpenDeployModal }) {
   const modules = [
-    { id: 'part1', num: '1', title: 'Nguyên Hàm & Tích Phân' },
-    { id: 'part2', num: '2', title: 'Tọa Độ Không Gian Oxyz' },
-    { id: 'part3', num: '3', title: 'Đạo Hàm & Tối Ưu Hóa' },
-    { id: 'part4', num: '4', title: 'Xác Suất & Định Lý Bayes' },
+    { id: 'part1', num: '1', title: 'Khảo Sát Hàm Số' },
+    { id: 'part2', num: '2', title: 'Nguyên Hàm & Tích Phân' },
+    { id: 'part3', num: '3', title: 'Tọa Độ Không Gian Oxyz' },
+    { id: 'part4', num: '4', title: 'Xác Suất Có Điều Kiện' },
   ];
 
   return (
