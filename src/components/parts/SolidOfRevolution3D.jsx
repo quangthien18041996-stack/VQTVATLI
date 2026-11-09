@@ -14,6 +14,7 @@ const PRESETS = [
     minA: 0,
     maxB: 20,
     unit: 'cm',
+    defaultZoom: 26,
     desc: 'Mô phỏng mặt ngoài chiếc bình gốm tròn xoay được tạo thành khi quay đường cong quanh trục Ox.'
   },
   {
@@ -26,6 +27,7 @@ const PRESETS = [
     minA: 0,
     maxB: 6,
     unit: 'đvđd',
+    defaultZoom: 16,
     desc: 'Khối tròn xoay kinh điển trong đề thi THPT Quốc gia (Bài 13 - Ví dụ 7).'
   },
   {
@@ -38,6 +40,7 @@ const PRESETS = [
     minA: 0,
     maxB: 6,
     unit: 'đvđd',
+    defaultZoom: 18,
     desc: 'Khi quay đoạn thẳng qua Ox ta thu được khối nón tròn xoay.'
   },
   {
@@ -50,6 +53,7 @@ const PRESETS = [
     minA: 0,
     maxB: 6.28,
     unit: 'đvđd',
+    defaultZoom: 18,
     desc: 'Đường cong tuần hoàn tạo thành lọ hoa trang trí nghệ thuật.'
   }
 ];
@@ -131,7 +135,7 @@ export default function SolidOfRevolution3D() {
   const [sliceX, setSliceX] = useState(7.5);
 
   // Zoom State
-  const DEFAULT_ZOOM = 26;
+  const DEFAULT_ZOOM = selectedPreset.defaultZoom || 24;
   const [zoomRadius, setZoomRadius] = useState(DEFAULT_ZOOM);
 
   // Keep sliceX inside [boundA, boundB]
@@ -167,7 +171,7 @@ export default function SolidOfRevolution3D() {
   };
 
   const handleResetZoom = () => {
-    setZoomRadius(DEFAULT_ZOOM);
+    setZoomRadius(selectedPreset.defaultZoom || 24);
   };
 
   useEffect(() => {
@@ -203,34 +207,66 @@ export default function SolidOfRevolution3D() {
     dirLight2.position.set(-20, -10, -20);
     scene.add(dirLight2);
 
-    // 3. Coordinate Grid & Axes
-    const gridHelper = new THREE.GridHelper(36, 36, 0x1e3a5f, 0x132338);
-    gridHelper.position.y = -5;
+    // 3. Shape Dimensions & Proportional Axes
+    const xMin = boundA;
+    const xMax = boundB;
+    const shapeLength = Math.max(0.1, xMax - xMin);
+
+    // Profile curve points & peak radius
+    const curvePoints = [];
+    let peakY = 0.001;
+    let peakX = boundA;
+    for (let i = 0; i <= 60; i++) {
+      const x = xMin + (i / 60) * shapeLength;
+      const y = Math.max(0, selectedPreset.fn(x));
+      if (y > peakY) {
+        peakY = y;
+        peakX = x;
+      }
+      curvePoints.push(new THREE.Vector3(x, y, 0));
+    }
+
+    // Dynamic axis boundaries strictly proportional to the 3D shape
+    const minXAxis = boundA <= 0 
+      ? -Math.max(0.8, Math.min(2.0, 0.12 * shapeLength)) 
+      : Math.min(-0.8, boundA - Math.max(0.8, 0.12 * shapeLength));
+    const maxXAxis = boundB + Math.max(1.0, Math.min(2.5, 0.15 * shapeLength));
+
+    const minYAxis = -Math.max(0.8, Math.min(1.8, 0.2 * peakY));
+    const maxYAxis = peakY + Math.max(0.8, Math.min(2.0, 0.25 * peakY));
+
+    // Dynamic scaling for arrowheads and annotations
+    const baseScale = Math.min(Math.max(shapeLength / 9, 0.65), 1.25);
+    const arrowConeRadius = 0.3 * baseScale;
+    const arrowConeHeight = 0.9 * baseScale;
+
+    // Floor Grid Helper (placed safely under the lowest bottom of the solid)
+    const floorY = -Math.max(peakY + 1.2, 3.2);
+    const gridSize = Math.max(24, Math.ceil((maxXAxis - minXAxis) * 2.2));
+    const gridHelper = new THREE.GridHelper(gridSize, Math.min(36, gridSize), 0x1e3a5f, 0x132338);
+    gridHelper.position.y = floorY;
     scene.add(gridHelper);
 
     // X Axis line (Trục quay Ox)
-    const maxXAxis = Math.max(boundB + 4, 18);
     const axisMatX = new THREE.LineBasicMaterial({ color: 0xf43f5e, linewidth: 2.5 });
     const axisGeomX = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-3, 0, 0),
+      new THREE.Vector3(minXAxis, 0, 0),
       new THREE.Vector3(maxXAxis, 0, 0)
     ]);
     const axisLineX = new THREE.Line(axisGeomX, axisMatX);
     scene.add(axisLineX);
 
     // Y Axis line (Trục tung Oy)
-    const maxYVal = Math.max(selectedPreset.fn(boundA), selectedPreset.fn(boundB), 5);
-    const maxYAxis = Math.max(maxYVal + 3.5, 8);
     const axisMatY = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 2 });
     const axisGeomY = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(0, -3, 0),
+      new THREE.Vector3(0, minYAxis, 0),
       new THREE.Vector3(0, maxYAxis, 0)
     ]);
     const axisLineY = new THREE.Line(axisGeomY, axisMatY);
     scene.add(axisLineY);
 
     // Dấu mũi tên 3D trục Ox (đỏ)
-    const arrowGeomX = new THREE.ConeGeometry(0.4, 1.2, 16);
+    const arrowGeomX = new THREE.ConeGeometry(arrowConeRadius, arrowConeHeight, 16);
     const arrowMatX = new THREE.MeshStandardMaterial({ 
       color: 0xf43f5e, 
       roughness: 0.25,
@@ -238,12 +274,12 @@ export default function SolidOfRevolution3D() {
       emissiveIntensity: 0.35
     });
     const arrowMeshX = new THREE.Mesh(arrowGeomX, arrowMatX);
-    arrowMeshX.position.set(maxXAxis + 0.6, 0, 0);
+    arrowMeshX.position.set(maxXAxis + arrowConeHeight / 2, 0, 0);
     arrowMeshX.rotation.z = -Math.PI / 2;
     scene.add(arrowMeshX);
 
     // Dấu mũi tên 3D trục Oy (xanh lá)
-    const arrowGeomY = new THREE.ConeGeometry(0.4, 1.2, 16);
+    const arrowGeomY = new THREE.ConeGeometry(arrowConeRadius, arrowConeHeight, 16);
     const arrowMatY = new THREE.MeshStandardMaterial({ 
       color: 0x10b981, 
       roughness: 0.25,
@@ -251,7 +287,7 @@ export default function SolidOfRevolution3D() {
       emissiveIntensity: 0.35
     });
     const arrowMeshY = new THREE.Mesh(arrowGeomY, arrowMatY);
-    arrowMeshY.position.set(0, maxYAxis + 0.6, 0);
+    arrowMeshY.position.set(0, maxYAxis + arrowConeHeight / 2, 0);
     scene.add(arrowMeshY);
 
     // 4. Generate Solid of Revolution Mesh
@@ -262,8 +298,6 @@ export default function SolidOfRevolution3D() {
     const vertices = [];
     const indices = [];
 
-    const xMin = boundA;
-    const xMax = boundB;
     const dx = (xMax - xMin) / xSteps;
     const dPhi = maxPhi / phiSteps;
 
@@ -312,18 +346,6 @@ export default function SolidOfRevolution3D() {
     scene.add(mesh);
 
     // Profile Curve: y = f(x)
-    const curvePoints = [];
-    let peakY = 0;
-    let peakX = boundA;
-    for (let i = 0; i <= 60; i++) {
-      const x = xMin + (i / 60) * (xMax - xMin);
-      const y = selectedPreset.fn(x);
-      if (y > peakY) {
-        peakY = y;
-        peakX = x;
-      }
-      curvePoints.push(new THREE.Vector3(x, y, 0));
-    }
     const curveGeom = new THREE.BufferGeometry().setFromPoints(curvePoints);
     const curveMat = new THREE.LineBasicMaterial({ color: 0xfbbf24, linewidth: 3.5 });
     const profileCurve = new THREE.Line(curveGeom, curveMat);
@@ -398,32 +420,32 @@ export default function SolidOfRevolution3D() {
 
     // 6. Educational 3D Annotation Labels & Symbols
     if (showLabels) {
-      // Label: Trục quay Ox (Positioned right at the end of the solid's visible axis)
+      // Label: Trục quay Ox (Positioned right after the dynamic arrow)
       const labelOx = createAnnotationSprite('Trục quay Ox ➜', {
         bg: 'rgba(225, 29, 72, 0.95)',
         border: '#fda4af',
-        worldHeight: 0.8
+        worldHeight: 0.75 * baseScale
       });
-      labelOx.position.set(maxXAxis - 1, -0.9, 0);
+      labelOx.position.set(maxXAxis + arrowConeHeight + 0.9 * baseScale, -0.6 * baseScale, 0);
       scene.add(labelOx);
 
-      // Label: Trục Oy
+      // Label: Trục Oy (Positioned right above the dynamic arrow)
       const labelOy = createAnnotationSprite('Trục Oy ⬆', {
         bg: 'rgba(5, 150, 105, 0.95)',
         border: '#6ee7b7',
-        worldHeight: 0.8
+        worldHeight: 0.75 * baseScale
       });
-      labelOy.position.set(0, maxYAxis - 0.5, 0);
+      labelOy.position.set(0, maxYAxis + arrowConeHeight + 0.55 * baseScale, 0);
       scene.add(labelOy);
 
       // Label: Gốc O(0,0) (offset to avoid overlapping with Cận a)
-      if (Math.abs(boundA) > 1.2) {
+      if (Math.abs(boundA) > 1.0) {
         const labelO = createAnnotationSprite('O(0,0)', {
           bg: 'rgba(30, 41, 59, 0.92)',
           border: '#94a3b8',
-          worldHeight: 0.75
+          worldHeight: 0.7 * baseScale
         });
-        labelO.position.set(0, -1.2, 0);
+        labelO.position.set(0, -1.0 * baseScale, 0);
         scene.add(labelO);
       }
 
@@ -432,27 +454,27 @@ export default function SolidOfRevolution3D() {
       const labelA = createAnnotationSprite(labelAText, {
         bg: 'rgba(2, 132, 199, 0.95)',
         border: '#7dd3fc',
-        worldHeight: 0.8
+        worldHeight: 0.75 * baseScale
       });
-      labelA.position.set(boundA, -1.8, 0);
+      labelA.position.set(boundA, -1.5 * baseScale, 0);
       scene.add(labelA);
 
       // Label: Cận b
       const labelB = createAnnotationSprite(`Cận x = b (${boundB})`, {
         bg: 'rgba(2, 132, 199, 0.95)',
         border: '#7dd3fc',
-        worldHeight: 0.8
+        worldHeight: 0.75 * baseScale
       });
-      labelB.position.set(boundB, -1.8, 0);
+      labelB.position.set(boundB, -1.5 * baseScale, 0);
       scene.add(labelB);
 
       // Label: Đường sinh y = f(x)
       const labelCurve = createAnnotationSprite('Đường sinh y = f(x)', {
         bg: 'rgba(217, 119, 6, 0.95)',
         border: '#fde047',
-        worldHeight: 0.85
+        worldHeight: 0.8 * baseScale
       });
-      labelCurve.position.set(peakX, peakY + 1.2, 0);
+      labelCurve.position.set(peakX, peakY + 0.85 * baseScale, 0);
       scene.add(labelCurve);
 
       // Label: Bán kính và Thiết diện lát cắt
@@ -461,18 +483,18 @@ export default function SolidOfRevolution3D() {
         const labelRadius = createAnnotationSprite(`r = f(x) = ${sliceRadius.toFixed(2)}`, {
           bg: 'rgba(180, 83, 9, 0.95)',
           border: '#fbbf24',
-          worldHeight: 0.78
+          worldHeight: 0.72 * baseScale
         });
-        labelRadius.position.set(sliceX, sliceRadius / 2, 1.2);
+        labelRadius.position.set(sliceX, sliceRadius / 2, 1.0 * baseScale);
         scene.add(labelRadius);
 
         // Disc Area label (generous padding, placed clearly above the disc)
         const labelSlice = createAnnotationSprite(`Thiết diện S(x) = π·r² = ${sliceArea.toFixed(1)}`, {
           bg: 'rgba(6, 95, 70, 0.95)',
           border: '#34d399',
-          worldHeight: 0.85
+          worldHeight: 0.8 * baseScale
         });
-        labelSlice.position.set(sliceX, sliceRadius + 1.5, 0);
+        labelSlice.position.set(sliceX, sliceRadius + 1.2 * baseScale, 0);
         scene.add(labelSlice);
       }
     }
@@ -557,7 +579,7 @@ export default function SolidOfRevolution3D() {
     setBoundA(p.defaultA);
     setBoundB(p.defaultB);
     setSliceX((p.defaultA + p.defaultB) / 2);
-    setZoomRadius(DEFAULT_ZOOM);
+    setZoomRadius(p.defaultZoom || 24);
   };
 
   // Zoom percentage display
