@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import MathView from '../MathView';
-import { RotateCw, Play, Pause, Layers, Eye, Tag, Disc, Sliders } from 'lucide-react';
+import { RotateCw, Play, Pause, Layers, Tag, Disc, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 
 const PRESETS = [
   {
@@ -54,33 +54,51 @@ const PRESETS = [
   }
 ];
 
-// Helper to create crisp 3D text billboards
+// Helper to create crisp, auto-sized 3D text billboards that NEVER clip text
 function createAnnotationSprite(text, options = {}) {
   const canvas = document.createElement('canvas');
-  canvas.width = 320;
-  canvas.height = 90;
+  const tempCtx = canvas.getContext('2d');
+  
+  const fontSize = options.fontSize || 26;
+  const font = `bold ${fontSize}px Inter, -apple-system, sans-serif`;
+  tempCtx.font = font;
+  
+  // Accurately measure text width to prevent ANY truncation or clipping
+  const metrics = tempCtx.measureText(text);
+  const textWidth = Math.ceil(metrics.width);
+  const paddingX = 40;
+  const paddingY = 24;
+  
+  canvas.width = Math.max(200, textWidth + paddingX * 2);
+  canvas.height = fontSize + paddingY * 2;
   const ctx = canvas.getContext('2d');
 
-  const bg = options.bg || 'rgba(15, 23, 42, 0.90)';
+  const bg = options.bg || 'rgba(15, 23, 42, 0.94)';
   const border = options.border || '#38bdf8';
   const textColor = options.textColor || '#ffffff';
 
+  // Draw rounded card background
   ctx.fillStyle = bg;
   ctx.strokeStyle = border;
   ctx.lineWidth = 4;
+  const r = 12;
+  const w = canvas.width - 8;
+  const h = canvas.height - 8;
+  
   if (ctx.roundRect) {
-    ctx.roundRect(8, 8, 304, 74, 14);
+    ctx.roundRect(4, 4, w, h, r);
   } else {
-    ctx.rect(8, 8, 304, 74);
+    ctx.rect(4, 4, w, h);
   }
   ctx.fill();
   ctx.stroke();
 
-  ctx.font = options.font || 'bold 26px Inter, sans-serif';
+  // Draw text
+  ctx.font = font;
   ctx.fillStyle = textColor;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, 160, 45);
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.minFilter = THREE.LinearFilter;
@@ -90,7 +108,11 @@ function createAnnotationSprite(text, options = {}) {
     depthTest: false 
   });
   const sprite = new THREE.Sprite(material);
-  sprite.scale.set(options.scaleX || 3.0, options.scaleY || 0.85, 1);
+  
+  // Scale sprite proportionally in 3D space
+  const worldHeight = options.worldHeight || 0.85;
+  const worldWidth = (canvas.width / canvas.height) * worldHeight;
+  sprite.scale.set(worldWidth, worldHeight, 1);
   return sprite;
 }
 
@@ -101,12 +123,16 @@ export default function SolidOfRevolution3D() {
   const [boundB, setBoundB] = useState(PRESETS[0].defaultB);
   const [sweepAngle, setSweepAngle] = useState(360);
   const [isWireframe, setIsWireframe] = useState(false);
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [autoRotate, setAutoRotate] = useState(false); // Default false so user can inspect clearly
 
-  // New Educational States
+  // Educational States
   const [showLabels, setShowLabels] = useState(true);
   const [showSlice, setShowSlice] = useState(true);
   const [sliceX, setSliceX] = useState(7.5);
+
+  // Zoom State
+  const DEFAULT_ZOOM = 26;
+  const [zoomRadius, setZoomRadius] = useState(DEFAULT_ZOOM);
 
   // Keep sliceX inside [boundA, boundB]
   useEffect(() => {
@@ -114,7 +140,6 @@ export default function SolidOfRevolution3D() {
     else if (sliceX > boundB) setSliceX(boundB);
   }, [boundA, boundB, sliceX]);
 
-  // Current slice radius and cross-section area
   const sliceRadius = Math.max(0.001, selectedPreset.fn(sliceX));
   const sliceArea = Math.PI * sliceRadius * sliceRadius;
 
@@ -133,31 +158,32 @@ export default function SolidOfRevolution3D() {
     return (fullVol * (sweepAngle / 360)).toFixed(2);
   }, [selectedPreset, boundA, boundB, sweepAngle]);
 
-  const area = React.useMemo(() => {
-    const steps = 200;
-    const dx = (boundB - boundA) / steps;
-    if (dx <= 0) return 0;
-    let sum = 0;
-    for (let i = 0; i < steps; i++) {
-      const x = boundA + (i + 0.5) * dx;
-      sum += Math.abs(selectedPreset.fn(x)) * dx;
-    }
-    return sum.toFixed(2);
-  }, [selectedPreset, boundA, boundB]);
+  const handleZoomIn = () => {
+    setZoomRadius((r) => Math.max(12, r - 3.5));
+  };
+
+  const handleZoomOut = () => {
+    setZoomRadius((r) => Math.min(50, r + 3.5));
+  };
+
+  const handleResetZoom = () => {
+    setZoomRadius(DEFAULT_ZOOM);
+  };
 
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
     const width = container.clientWidth;
-    const height = 480;
+    const height = 500;
 
     // 1. Scene, Camera, Renderer
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0c192c);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(16, 13, 20);
-    camera.lookAt(7, 0, 0);
+    const midX = (boundA + boundB) / 2;
+    camera.position.set(midX, 10, zoomRadius);
+    camera.lookAt(midX, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
@@ -166,7 +192,7 @@ export default function SolidOfRevolution3D() {
     container.appendChild(renderer.domElement);
 
     // 2. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
     scene.add(ambientLight);
 
     const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.8);
@@ -178,24 +204,27 @@ export default function SolidOfRevolution3D() {
     scene.add(dirLight2);
 
     // 3. Coordinate Grid & Axes
-    const gridHelper = new THREE.GridHelper(32, 32, 0x1e3a5f, 0x132338);
+    const gridHelper = new THREE.GridHelper(36, 36, 0x1e3a5f, 0x132338);
     gridHelper.position.y = -5;
     scene.add(gridHelper);
 
     // X Axis line (Trục quay Ox)
+    const maxXAxis = Math.max(boundB + 4, 18);
     const axisMatX = new THREE.LineBasicMaterial({ color: 0xf43f5e, linewidth: 2.5 });
     const axisGeomX = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(-4, 0, 0),
-      new THREE.Vector3(26, 0, 0)
+      new THREE.Vector3(-3, 0, 0),
+      new THREE.Vector3(maxXAxis, 0, 0)
     ]);
     const axisLineX = new THREE.Line(axisGeomX, axisMatX);
     scene.add(axisLineX);
 
     // Y Axis line (Trục tung Oy)
+    const maxYVal = Math.max(selectedPreset.fn(boundA), selectedPreset.fn(boundB), 5);
+    const maxYAxis = Math.max(maxYVal + 3.5, 8);
     const axisMatY = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 2 });
     const axisGeomY = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(0, -4, 0),
-      new THREE.Vector3(0, 12, 0)
+      new THREE.Vector3(0, -3, 0),
+      new THREE.Vector3(0, maxYAxis, 0)
     ]);
     const axisLineY = new THREE.Line(axisGeomY, axisMatY);
     scene.add(axisLineY);
@@ -259,14 +288,14 @@ export default function SolidOfRevolution3D() {
 
     // Profile Curve: y = f(x)
     const curvePoints = [];
-    let maxY = 0;
-    let maxYX = boundA;
+    let peakY = 0;
+    let peakX = boundA;
     for (let i = 0; i <= 60; i++) {
       const x = xMin + (i / 60) * (xMax - xMin);
       const y = selectedPreset.fn(x);
-      if (y > maxY) {
-        maxY = y;
-        maxYX = x;
+      if (y > peakY) {
+        peakY = y;
+        peakX = x;
       }
       curvePoints.push(new THREE.Vector3(x, y, 0));
     }
@@ -286,7 +315,7 @@ export default function SolidOfRevolution3D() {
         pts.push(new THREE.Vector3(xVal, r * Math.cos(a), r * Math.sin(a)));
       }
       ringGeom.setFromPoints(pts);
-      const ringMat = new THREE.LineBasicMaterial({ color: colorHex, linewidth: 2 });
+      const ringMat = new THREE.LineBasicMaterial({ color: colorHex, linewidth: 2.5 });
       return new THREE.Line(ringGeom, ringMat);
     };
 
@@ -297,14 +326,13 @@ export default function SolidOfRevolution3D() {
     if (showSlice && sliceX >= boundA && sliceX <= boundB) {
       const r = Math.max(0.001, selectedPreset.fn(sliceX));
       
-      // Disc mesh (rotated so it is perpendicular to X-axis)
       const discGeom = new THREE.CircleGeometry(r, 48, 0, maxPhi);
       const discMat = new THREE.MeshStandardMaterial({
         color: 0x10b981,
         emissive: 0x059669,
-        emissiveIntensity: 0.35,
+        emissiveIntensity: 0.4,
         transparent: true,
-        opacity: 0.65,
+        opacity: 0.75,
         side: THREE.DoubleSide
       });
       const discMesh = new THREE.Mesh(discGeom, discMat);
@@ -312,7 +340,7 @@ export default function SolidOfRevolution3D() {
       discMesh.rotation.y = Math.PI / 2;
       scene.add(discMesh);
 
-      // Disc outer rim
+      // Rim
       const rimGeom = new THREE.BufferGeometry();
       const rimPts = [];
       for (let s = 0; s <= 48; s++) {
@@ -320,7 +348,7 @@ export default function SolidOfRevolution3D() {
         rimPts.push(new THREE.Vector3(sliceX, r * Math.cos(phi), r * Math.sin(phi)));
       }
       rimGeom.setFromPoints(rimPts);
-      const rimMat = new THREE.LineBasicMaterial({ color: 0x34d399, linewidth: 2.5 });
+      const rimMat = new THREE.LineBasicMaterial({ color: 0x34d399, linewidth: 3 });
       scene.add(new THREE.Line(rimGeom, rimMat));
 
       // Radius line: r = f(x)
@@ -328,11 +356,11 @@ export default function SolidOfRevolution3D() {
         new THREE.Vector3(sliceX, 0, 0),
         new THREE.Vector3(sliceX, r, 0)
       ]);
-      const radiusMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, linewidth: 3 });
+      const radiusMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, linewidth: 3.5 });
       scene.add(new THREE.Line(radiusGeom, radiusMat));
 
-      // Point at center and point on rim
-      const centerDotGeom = new THREE.SphereGeometry(0.18, 16, 16);
+      // Center dot & Rim dot
+      const centerDotGeom = new THREE.SphereGeometry(0.2, 16, 16);
       const dotMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
       const centerDot = new THREE.Mesh(centerDotGeom, dotMat);
       centerDot.position.set(sliceX, 0, 0);
@@ -345,90 +373,86 @@ export default function SolidOfRevolution3D() {
 
     // 6. Educational 3D Annotation Labels & Symbols
     if (showLabels) {
-      // Label: Trục quay Ox
+      // Label: Trục quay Ox (Positioned right at the end of the solid's visible axis)
       const labelOx = createAnnotationSprite('Trục quay Ox ➜', {
-        bg: 'rgba(239, 68, 68, 0.92)',
-        border: '#f87171',
-        scaleX: 3.4,
-        scaleY: 0.95
+        bg: 'rgba(225, 29, 72, 0.95)',
+        border: '#fda4af',
+        worldHeight: 0.8
       });
-      labelOx.position.set(23, -0.8, 0);
+      labelOx.position.set(maxXAxis - 1, -0.9, 0);
       scene.add(labelOx);
 
       // Label: Trục Oy
       const labelOy = createAnnotationSprite('Trục Oy ⬆', {
-        bg: 'rgba(16, 185, 129, 0.92)',
-        border: '#34d399',
-        scaleX: 2.5,
-        scaleY: 0.95
+        bg: 'rgba(5, 150, 105, 0.95)',
+        border: '#6ee7b7',
+        worldHeight: 0.8
       });
-      labelOy.position.set(0, 11, 0);
+      labelOy.position.set(0, maxYAxis - 0.5, 0);
       scene.add(labelOy);
 
-      // Label: Gốc O(0,0)
-      const labelO = createAnnotationSprite('O(0,0)', {
-        bg: 'rgba(30, 41, 59, 0.9)',
-        border: '#94a3b8',
-        scaleX: 2.0,
-        scaleY: 0.8
-      });
-      labelO.position.set(-0.8, -0.8, 0);
-      scene.add(labelO);
+      // Label: Gốc O(0,0) (offset to avoid overlapping with Cận a)
+      if (Math.abs(boundA) > 1.2) {
+        const labelO = createAnnotationSprite('O(0,0)', {
+          bg: 'rgba(30, 41, 59, 0.92)',
+          border: '#94a3b8',
+          worldHeight: 0.75
+        });
+        labelO.position.set(0, -1.2, 0);
+        scene.add(labelO);
+      }
 
-      // Label: Cận a
-      const labelA = createAnnotationSprite(`Cận x = a (${boundA})`, {
-        bg: 'rgba(2, 132, 199, 0.92)',
-        border: '#38bdf8',
-        scaleX: 3.0,
-        scaleY: 0.85
+      // Label: Cận a (Nếu a = 0 thì hiển thị rõ O ≡ a)
+      const labelAText = boundA === 0 ? 'O ≡ Cận a (0)' : `Cận x = a (${boundA})`;
+      const labelA = createAnnotationSprite(labelAText, {
+        bg: 'rgba(2, 132, 199, 0.95)',
+        border: '#7dd3fc',
+        worldHeight: 0.8
       });
-      labelA.position.set(boundA, -1.6, 0);
+      labelA.position.set(boundA, -1.8, 0);
       scene.add(labelA);
 
       // Label: Cận b
       const labelB = createAnnotationSprite(`Cận x = b (${boundB})`, {
-        bg: 'rgba(2, 132, 199, 0.92)',
-        border: '#38bdf8',
-        scaleX: 3.0,
-        scaleY: 0.85
+        bg: 'rgba(2, 132, 199, 0.95)',
+        border: '#7dd3fc',
+        worldHeight: 0.8
       });
-      labelB.position.set(boundB, -1.6, 0);
+      labelB.position.set(boundB, -1.8, 0);
       scene.add(labelB);
 
       // Label: Đường sinh y = f(x)
       const labelCurve = createAnnotationSprite('Đường sinh y = f(x)', {
-        bg: 'rgba(217, 119, 6, 0.92)',
-        border: '#fbbf24',
-        textColor: '#ffffff',
-        scaleX: 3.6,
-        scaleY: 0.95
+        bg: 'rgba(217, 119, 6, 0.95)',
+        border: '#fde047',
+        worldHeight: 0.85
       });
-      labelCurve.position.set(maxYX, maxY + 1.2, 0);
+      labelCurve.position.set(peakX, peakY + 1.2, 0);
       scene.add(labelCurve);
 
       // Label: Bán kính và Thiết diện lát cắt
       if (showSlice) {
+        // Radius label (offset in Z so it pops in front clearly!)
         const labelRadius = createAnnotationSprite(`r = f(x) = ${sliceRadius.toFixed(2)}`, {
-          bg: 'rgba(180, 83, 9, 0.92)',
-          border: '#f59e0b',
-          scaleX: 3.2,
-          scaleY: 0.85
+          bg: 'rgba(180, 83, 9, 0.95)',
+          border: '#fbbf24',
+          worldHeight: 0.78
         });
-        labelRadius.position.set(sliceX, sliceRadius / 2, 0);
+        labelRadius.position.set(sliceX, sliceRadius / 2, 1.2);
         scene.add(labelRadius);
 
+        // Disc Area label (generous padding, placed clearly above the disc)
         const labelSlice = createAnnotationSprite(`Thiết diện S(x) = π·r² = ${sliceArea.toFixed(1)}`, {
-          bg: 'rgba(6, 95, 70, 0.92)',
-          border: '#10b981',
-          scaleX: 4.2,
-          scaleY: 0.95
+          bg: 'rgba(6, 95, 70, 0.95)',
+          border: '#34d399',
+          worldHeight: 0.85
         });
-        labelSlice.position.set(sliceX, sliceRadius + 1.2, sliceRadius * 0.4);
+        labelSlice.position.set(sliceX, sliceRadius + 1.5, 0);
         scene.add(labelSlice);
       }
     }
 
-    // 7. Mouse Orbit
+    // 7. Mouse Orbit & Wheel Zoom
     let isDragging = false;
     let prevMouse = { x: 0, y: 0 };
     let rotX = 0.35;
@@ -450,7 +474,17 @@ export default function SolidOfRevolution3D() {
 
     const onMouseUp = () => { isDragging = false; };
 
+    // Scroll wheel zoom event on canvas!
+    const onWheel = (e) => {
+      e.preventDefault();
+      setZoomRadius((curr) => {
+        const delta = e.deltaY > 0 ? 1.8 : -1.8;
+        return Math.min(50, Math.max(12, curr + delta));
+      });
+    };
+
     container.addEventListener('mousedown', onMouseDown);
+    container.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
 
@@ -469,11 +503,12 @@ export default function SolidOfRevolution3D() {
       if (autoRotate && !isDragging) {
         rotY += 0.0035;
       }
-      const radius = 28;
-      camera.position.x = 7 + radius * Math.cos(rotX) * Math.sin(rotY);
-      camera.position.y = radius * Math.sin(rotX);
-      camera.position.z = radius * Math.cos(rotX) * Math.cos(rotY);
-      camera.lookAt(7, 0, 0);
+      
+      // Update camera position with dynamic zoomRadius
+      camera.position.x = midX + zoomRadius * Math.cos(rotX) * Math.sin(rotY);
+      camera.position.y = zoomRadius * Math.sin(rotX);
+      camera.position.z = zoomRadius * Math.cos(rotX) * Math.cos(rotY);
+      camera.lookAt(midX, 0, 0);
 
       renderer.render(scene, camera);
     };
@@ -482,6 +517,7 @@ export default function SolidOfRevolution3D() {
     return () => {
       cancelAnimationFrame(animId);
       container.removeEventListener('mousedown', onMouseDown);
+      container.removeEventListener('wheel', onWheel);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('resize', handleResize);
@@ -489,14 +525,18 @@ export default function SolidOfRevolution3D() {
       material.dispose();
       renderer.dispose();
     };
-  }, [selectedPreset, boundA, boundB, sweepAngle, isWireframe, autoRotate, showLabels, showSlice, sliceX]);
+  }, [selectedPreset, boundA, boundB, sweepAngle, isWireframe, autoRotate, showLabels, showSlice, sliceX, zoomRadius]);
 
   const handleSelectPreset = (p) => {
     setSelectedPreset(p);
     setBoundA(p.defaultA);
     setBoundB(p.defaultB);
     setSliceX((p.defaultA + p.defaultB) / 2);
+    setZoomRadius(DEFAULT_ZOOM);
   };
+
+  // Zoom percentage display
+  const zoomPercent = Math.round((DEFAULT_ZOOM / zoomRadius) * 100);
 
   return (
     <div className="bg-white border border-sky-100 rounded-2xl overflow-hidden shadow-sm">
@@ -506,7 +546,7 @@ export default function SolidOfRevolution3D() {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
             <h3 className="font-bold text-slate-800 text-base md:text-lg">
-              Phòng Thí Nghiệm 3D: Khối Tròn Xoay Kèm Ký Hiệu & Thiết Diện Động
+              Phòng Thí Nghiệm 3D: Khối Tròn Xoay Kèm Ký Hiệu & Phóng To/Thu Nhỏ
             </h3>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -527,7 +567,7 @@ export default function SolidOfRevolution3D() {
             title="Bật/Tắt ký hiệu tọa độ, cận a, b, đường sinh và bán kính"
           >
             <Tag className="w-3.5 h-3.5" />
-            {showLabels ? 'Ký Hiệu: Đang Bật' : 'Ký Hiệu: Đã Tắt'}
+            {showLabels ? 'Ký Hiệu: Bật' : 'Ký Hiệu: Tắt'}
           </button>
 
           <button
@@ -550,7 +590,7 @@ export default function SolidOfRevolution3D() {
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
-            {isWireframe ? 'Lưới Wireframe' : 'Mặt đặc Solid'}
+            {isWireframe ? 'Khung lưới' : 'Mặt đặc'}
           </button>
 
           <button
@@ -586,8 +626,41 @@ export default function SolidOfRevolution3D() {
       <div className="grid grid-cols-1 lg:grid-cols-4">
         {/* 3D Canvas */}
         <div className="lg:col-span-3 relative cursor-grab active:cursor-grabbing bg-[#0c192c]">
-          <div ref={containerRef} className="w-full h-[480px]" />
+          <div ref={containerRef} className="w-full h-[500px]" />
           
+          {/* Floating Zoom In / Zoom Out Toolbar on Top Right */}
+          <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700 flex items-center gap-1 shadow-xl">
+            <button
+              onClick={handleZoomIn}
+              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+              title="Phóng to vật thể (hoặc cuộn chuột lên)"
+            >
+              <ZoomIn className="w-4 h-4 text-cyan-400" />
+              <span className="hidden sm:inline">Phóng to</span>
+            </button>
+
+            <span className="text-[11px] font-mono text-cyan-300 px-2 py-0.5 bg-slate-950/80 rounded-lg border border-slate-800">
+              {zoomPercent}%
+            </span>
+
+            <button
+              onClick={handleZoomOut}
+              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+              title="Thu nhỏ vật thể (hoặc cuộn chuột xuống)"
+            >
+              <ZoomOut className="w-4 h-4 text-cyan-400" />
+              <span className="hidden sm:inline">Thu nhỏ</span>
+            </button>
+
+            <button
+              onClick={handleResetZoom}
+              className="p-2 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Đặt lại mức thu phóng mặc định"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+
           {/* Legend badge on bottom left */}
           <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-700 text-[11px] text-slate-300 flex flex-wrap items-center gap-3 shadow-lg">
             <span className="flex items-center gap-1">
@@ -600,7 +673,7 @@ export default function SolidOfRevolution3D() {
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Bán kính r = f(x)
             </span>
             <span className="text-slate-500">|</span>
-            <span className="text-cyan-300">Kéo chuột để xoay 360°</span>
+            <span className="text-cyan-300 font-medium">Cuộn chuột hoặc bấm nút để phóng to/thu nhỏ</span>
           </div>
         </div>
 
