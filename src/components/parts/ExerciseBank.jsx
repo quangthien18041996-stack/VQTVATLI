@@ -27,49 +27,49 @@ const PRACTICE_QUESTIONS = [
     id: '4.20',
     title: 'Câu 4.20 (SGK Trang 27)',
     topic: 'Nguyên hàm lượng giác',
-    question: 'Một nguyên hàm của hàm số f(x) = \\sin 2x là:',
+    question: 'Một nguyên hàm của hàm số $f(x) = \\sin 2x$ là:',
     options: [
-      { key: 'A', text: 'F(x) = 2\\cos 2x' },
-      { key: 'B', text: 'F(x) = -\\cos 2x' },
-      { key: 'C', text: 'F(x) = \\frac{1}{2}\\cos 2x' },
-      { key: 'D', text: 'F(x) = -\\frac{1}{2}\\cos 2x' }
+      { key: 'A', text: '$F(x) = 2\\cos 2x$' },
+      { key: 'B', text: '$F(x) = -\\cos 2x$' },
+      { key: 'C', text: '$F(x) = \\frac{1}{2}\\cos 2x$' },
+      { key: 'D', text: '$F(x) = -\\frac{1}{2}\\cos 2x$' }
     ],
     correct: 'D',
-    explanation: 'Ta có \\int \\sin 2x dx = -\\frac{1}{2}\\cos 2x + C. Do đó F(x) = -\\frac{1}{2}\\cos 2x là một nguyên hàm.'
+    explanation: 'Ta có $\\int \\sin 2x dx = -\\frac{1}{2}\\cos 2x + C$. Do đó $F(x) = -\\frac{1}{2}\\cos 2x$ là một nguyên hàm.'
   },
   {
     id: '4.21',
     title: 'Câu 4.21 (SGK Trang 27)',
     topic: 'Nguyên hàm hàm số mũ',
-    question: 'Họ các nguyên hàm của hàm số 2e^x là:',
+    question: 'Họ các nguyên hàm của hàm số $2e^x$ là:',
     options: [
-      { key: 'A', text: '2xe^x + C' },
-      { key: 'B', text: '-2e^x + C' },
-      { key: 'C', text: '2e^x' },
-      { key: 'D', text: '2e^x + C' }
+      { key: 'A', text: '$2xe^x + C$' },
+      { key: 'B', text: '$-2e^x + C$' },
+      { key: 'C', text: '$2e^x$' },
+      { key: 'D', text: '$2e^x + C$' }
     ],
     correct: 'D',
-    explanation: 'Theo tính chất nguyên hàm, \\int 2e^x dx = 2 \\int e^x dx = 2e^x + C.'
+    explanation: 'Theo tính chất nguyên hàm, $\\int 2e^x dx = 2 \\int e^x dx = 2e^x + C$.'
   },
   {
     id: '4.22',
     title: 'Câu 4.22 (SGK Trang 27)',
     topic: 'Tìm nguyên hàm thỏa điều kiện',
-    question: 'Nguyên hàm F(x) của hàm số f(x) = e^x - 3e^{-x} thoả mãn F(0) = 4 là:',
+    question: 'Nguyên hàm $F(x)$ của hàm số $f(x) = e^x - 3e^{-x}$ thoả mãn $F(0) = 4$ là:',
     options: [
-      { key: 'A', text: 'F(x) = e^x - 3e^{-x}' },
-      { key: 'B', text: 'F(x) = e^x + 3e^{-2x}' },
-      { key: 'C', text: 'F(x) = e^x + 3e^{-x}' },
-      { key: 'D', text: 'F(x) = e^x + 3e^{-x} + 4' }
+      { key: 'A', text: '$F(x) = e^x - 3e^{-x}$' },
+      { key: 'B', text: '$F(x) = e^x + 3e^{-2x}$' },
+      { key: 'C', text: '$F(x) = e^x + 3e^{-x}$' },
+      { key: 'D', text: '$F(x) = e^x + 3e^{-x} + 4$' }
     ],
     correct: 'C',
-    explanation: 'Ta có F(x) = \\int (e^x - 3e^{-x})dx = e^x + 3e^{-x} + C. Với F(0) = e^0 + 3e^0 + C = 1 + 3 + C = 4 \\implies C = 0. Vậy F(x) = e^x + 3e^{-x}.'
+    explanation: 'Ta có $F(x) = \\int (e^x - 3e^{-x})dx = e^x + 3e^{-x} + C$. Với $F(0) = e^0 + 3e^0 + C = 1 + 3 + C = 4 \\implies C = 0$. Vậy $F(x) = e^x + 3e^{-x}$.'
   },
   {
     id: '4.23',
     title: 'Câu 4.23 (SGK Trang 27)',
     topic: 'Định nghĩa tích phân',
-    question: 'Cho hàm số f(x) có đạo hàm f\'(x) liên tục trên \\mathbb{R}, f(1) = 16 và \\int_1^3 f\'(x)dx = 4. Khi đó giá trị của f(3) bằng:',
+    question: 'Cho hàm số $f(x)$ có đạo hàm $f\'(x)$ liên tục trên $\\mathbb{R}$, $f(1) = 16$ và $\\int_1^3 f\'(x)dx = 4$. Khi đó giá trị của $f(3)$ bằng:',
     options: [
       { key: 'A', text: '20' },
       { key: 'B', text: '16' },
@@ -77,41 +77,41 @@ const PRACTICE_QUESTIONS = [
       { key: 'D', text: '10' }
     ],
     correct: 'A',
-    explanation: 'Theo định nghĩa tích phân: \\int_1^3 f\'(x)dx = f(3) - f(1) \\iff 4 = f(3) - 16 \\implies f(3) = 20.'
+    explanation: 'Theo định nghĩa tích phân: $\\int_1^3 f\'(x)dx = f(3) - f(1) \\iff 4 = f(3) - 16 \\implies f(3) = 20$.'
   },
   {
     id: '4.24',
     title: 'Câu 4.24 (SGK Trang 27)',
     topic: 'Diện tích hình phẳng',
-    question: 'Diện tích hình phẳng giới hạn bởi đồ thị các hàm số y = x^2 - 2x, y = -x^2 + 4x và hai đường thẳng x = 0, x = 3 là:',
+    question: 'Diện tích hình phẳng giới hạn bởi đồ thị các hàm số $y = x^2 - 2x$, $y = -x^2 + 4x$ và hai đường thẳng $x = 0$, $x = 3$ là:',
     options: [
       { key: 'A', text: '-9' },
       { key: 'B', text: '9' },
-      { key: 'C', text: '\\frac{16}{3}' },
-      { key: 'D', text: '\\frac{20}{3}' }
+      { key: 'C', text: '$\\frac{16}{3}$' },
+      { key: 'D', text: '$\\frac{20}{3}$' }
     ],
     correct: 'B',
-    explanation: 'Xét hiệu (x^2 - 2x) - (-x^2 + 4x) = 2x^2 - 6x = 2x(x - 3). Với x \\in [0, 3], hiệu này luôn \\le 0. Do đó S = \\int_0^3 |2x^2 - 6x|dx = \\int_0^3 (6x - 2x^2)dx = \\left.(3x^2 - \\frac{2x^3}{3})\\right|_0^3 = 27 - 18 = 9.'
+    explanation: 'Xét hiệu $(x^2 - 2x) - (-x^2 + 4x) = 2x^2 - 6x = 2x(x - 3)$. Với $x \\in [0, 3]$, hiệu này luôn $\\le 0$. Do đó $S = \\int_0^3 |2x^2 - 6x|dx = \\int_0^3 (6x - 2x^2)dx = \\left.(3x^2 - \\frac{2x^3}{3})\\right|_0^3 = 27 - 18 = 9$.'
   },
   {
     id: '4.26',
     title: 'Câu 4.26 (SGK Trang 28)',
     topic: 'Thể tích khối tròn xoay',
-    question: 'Cho hình phẳng (S) giới hạn bởi đồ thị hàm số y = \\sqrt{1 - x^2}, trục hoành và hai đường thẳng x = -1, x = 1. Thể tích khối tròn xoay sinh ra khi quay (S) quanh Ox là:',
+    question: 'Cho hình phẳng $(S)$ giới hạn bởi đồ thị hàm số $y = \\sqrt{1 - x^2}$, trục hoành và hai đường thẳng $x = -1$, $x = 1$. Thể tích khối tròn xoay sinh ra khi quay $(S)$ quanh trục $Ox$ là:',
     options: [
-      { key: 'A', text: '\\frac{3\\pi}{4}' },
-      { key: 'B', text: '\\frac{3\\pi}{2}' },
-      { key: 'C', text: '\\frac{2\\pi}{3}' },
-      { key: 'D', text: '\\frac{4\\pi}{3}' }
+      { key: 'A', text: '$\\frac{3\\pi}{4}$' },
+      { key: 'B', text: '$\\frac{3\\pi}{2}$' },
+      { key: 'C', text: '$\\frac{2\\pi}{3}$' },
+      { key: 'D', text: '$\\frac{4\\pi}{3}$' }
     ],
     correct: 'D',
-    explanation: 'Đây là thể tích khối cầu bán kính R=1! Ta có V = \\pi \\int_{-1}^1 (1 - x^2)dx = \\pi \\left.(x - \\frac{x^3}{3})\\right|_{-1}^1 = \\frac{4\\pi}{3}.'
+    explanation: 'Đây là thể tích khối cầu bán kính $R=1$! Ta có $V = \\pi \\int_{-1}^1 (1 - x^2)dx = \\pi \\left.(x - \\frac{x^3}{3})\\right|_{-1}^1 = \\frac{4\\pi}{3}$.'
   },
   {
     id: '4.27',
     title: 'Câu 4.27 (SGK Trang 28)',
     topic: 'Ứng dụng vật lý - Gia tốc và Vận tốc',
-    question: 'Một vật chuyển động có gia tốc là a(t) = 3t^2 + t \\text{ (m/s}^2\\text{)}. Biết rằng vận tốc ban đầu của vật là 2 m/s. Vận tốc của vật đó sau 2 giây là:',
+    question: 'Một vật chuyển động có gia tốc là $a(t) = 3t^2 + t\\text{ (m/s}^2\\text{)}$. Biết rằng vận tốc ban đầu của vật là 2 m/s. Vận tốc của vật đó sau 2 giây là:',
     options: [
       { key: 'A', text: '8 m/s' },
       { key: 'B', text: '10 m/s' },
@@ -119,7 +119,7 @@ const PRACTICE_QUESTIONS = [
       { key: 'D', text: '16 m/s' }
     ],
     correct: 'C',
-    explanation: 'Vận tốc là nguyên hàm của gia tốc: v(t) = \\int a(t)dt = t^3 + \\frac{t^2}{2} + C. Với v(0) = 2 \\implies C = 2. Khi đó v(2) = 2^3 + \\frac{2^2}{2} + 2 = 8 + 2 + 2 = 12\\text{ m/s}.'
+    explanation: 'Vận tốc là nguyên hàm của gia tốc: $v(t) = \\int a(t)dt = t^3 + \\frac{t^2}{2} + C$. Với $v(0) = 2 \\implies C = 2$. Khi đó $v(2) = 2^3 + \\frac{2^2}{2} + 2 = 8 + 2 + 2 = 12\\text{ m/s}$.'
   }
 ];
 
@@ -131,33 +131,33 @@ const EXAM_PART_1 = [
   {
     id: 'E1_1',
     num: 1,
-    question: 'Họ tất cả các nguyên hàm của hàm số f(x) = 3x^2 + 2x là:',
+    question: 'Họ tất cả các nguyên hàm của hàm số $f(x) = 3x^2 + 2x$ là:',
     options: [
-      { key: 'A', text: 'x^3 + x^2 + C' },
-      { key: 'B', text: '6x + 2 + C' },
-      { key: 'C', text: '3x^3 + 2x^2 + C' },
-      { key: 'D', text: '\\frac{x^3}{3} + \\frac{x^2}{2} + C' }
+      { key: 'A', text: '$x^3 + x^2 + C$' },
+      { key: 'B', text: '$6x + 2 + C$' },
+      { key: 'C', text: '$3x^3 + 2x^2 + C$' },
+      { key: 'D', text: '$\\frac{x^3}{3} + \\frac{x^2}{2} + C$' }
     ],
     correct: 'A',
-    explanation: '\\int (3x^2 + 2x)dx = 3\\cdot\\frac{x^3}{3} + 2\\cdot\\frac{x^2}{2} + C = x^3 + x^2 + C.'
+    explanation: '$\\int (3x^2 + 2x)dx = 3\\cdot\\frac{x^3}{3} + 2\\cdot\\frac{x^2}{2} + C = x^3 + x^2 + C$.'
   },
   {
     id: 'E1_2',
     num: 2,
-    question: 'Tích phân I = \\int_0^1 e^{2x} dx có giá trị bằng:',
+    question: 'Tích phân $I = \\int_0^1 e^{2x} dx$ có giá trị bằng:',
     options: [
-      { key: 'A', text: 'e^2 - 1' },
-      { key: 'B', text: '\\frac{e^2 - 1}{2}' },
-      { key: 'C', text: '2(e^2 - 1)' },
-      { key: 'D', text: '\\frac{e^2}{2}' }
+      { key: 'A', text: '$e^2 - 1$' },
+      { key: 'B', text: '$\\frac{e^2 - 1}{2}$' },
+      { key: 'C', text: '$2(e^2 - 1)$' },
+      { key: 'D', text: '$\\frac{e^2}{2}$' }
     ],
     correct: 'B',
-    explanation: 'I = \\left.\\frac{e^{2x}}{2}\\right|_0^1 = \\frac{e^2 - e^0}{2} = \\frac{e^2 - 1}{2}.'
+    explanation: '$I = \\left.\\frac{e^{2x}}{2}\\right|_0^1 = \\frac{e^2 - e^0}{2} = \\frac{e^2 - 1}{2}$.'
   },
   {
     id: 'E1_3',
     num: 3,
-    question: 'Cho \\int_1^2 f(x)dx = 2 và \\int_1^2 g(x)dx = -3. Khi đó \\int_1^2 [f(x) - 2g(x)]dx bằng:',
+    question: 'Cho $\\int_1^2 f(x)dx = 2$ và $\\int_1^2 g(x)dx = -3$. Khi đó $\\int_1^2 [f(x) - 2g(x)]dx$ bằng:',
     options: [
       { key: 'A', text: '8' },
       { key: 'B', text: '-4' },
@@ -165,20 +165,20 @@ const EXAM_PART_1 = [
       { key: 'D', text: '-1' }
     ],
     correct: 'A',
-    explanation: '\\int_1^2 [f(x) - 2g(x)]dx = \\int_1^2 f(x)dx - 2\\int_1^2 g(x)dx = 2 - 2(-3) = 8.'
+    explanation: '$\\int_1^2 [f(x) - 2g(x)]dx = \\int_1^2 f(x)dx - 2\\int_1^2 g(x)dx = 2 - 2(-3) = 8$.'
   },
   {
     id: 'E1_4',
     num: 4,
-    question: 'Thể tích khối tròn xoay tạo thành khi quay hình phẳng giới hạn bởi y = \\sqrt{x}, y = 0, x = 0, x = 4 quanh trục Ox là:',
+    question: 'Thể tích khối tròn xoay tạo thành khi quay hình phẳng giới hạn bởi $y = \\sqrt{x}$, $y = 0$, $x = 0$, $x = 4$ quanh trục $Ox$ là:',
     options: [
-      { key: 'A', text: '8\\pi' },
-      { key: 'B', text: '16\\pi' },
-      { key: 'C', text: '4\\pi' },
-      { key: 'D', text: '\\frac{16\\pi}{3}' }
+      { key: 'A', text: '$8\\pi$' },
+      { key: 'B', text: '$16\\pi$' },
+      { key: 'C', text: '$4\\pi$' },
+      { key: 'D', text: '$\\frac{16\\pi}{3}$' }
     ],
     correct: 'A',
-    explanation: 'V = \\pi \\int_0^4 (\\sqrt{x})^2 dx = \\pi \\int_0^4 x dx = \\pi \\left.\\frac{x^2}{2}\\right|_0^4 = 8\\pi.'
+    explanation: '$V = \\pi \\int_0^4 (\\sqrt{x})^2 dx = \\pi \\int_0^4 x dx = \\pi \\left.\\frac{x^2}{2}\\right|_0^4 = 8\\pi$.'
   }
 ];
 
@@ -186,23 +186,23 @@ const EXAM_PART_2 = [
   {
     id: 'E2_1',
     num: 1,
-    statement: 'Cho hàm số f(x) = 2x - 3 liên tục trên \\mathbb{R}.',
+    statement: 'Cho hàm số $f(x) = 2x - 3$ liên tục trên $\\mathbb{R}$.',
     items: [
-      { key: 'a', text: 'Một nguyên hàm của f(x) là F(x) = x^2 - 3x.', correct: true, explain: 'Đạo hàm F\'(x) = 2x - 3 = f(x) nên mệnh đề này ĐÚNG.' },
-      { key: 'b', text: 'Nếu F(x) là một nguyên hàm của f(x) thỏa mãn F(1) = 2 thì F(0) = 4.', correct: true, explain: 'F(x) = x^2 - 3x + C. Với F(1) = 1 - 3 + C = 2 \\implies C = 4. Do đó F(0) = 4 (ĐÚNG).' },
-      { key: 'c', text: 'Tích phân \\int_0^2 f(x)dx = -2.', correct: true, explain: '\\int_0^2 (2x - 3)dx = [x^2 - 3x]_0^2 = 4 - 6 = -2 (ĐÚNG).' },
-      { key: 'd', text: 'Diện tích hình phẳng giới hạn bởi đồ thị hàm số y = f(x), trục hoành và hai đường thẳng x = 0, x = 2 bằng 2.', correct: false, explain: 'Nghiệm f(x) = 0 là x = 1.5. Diện tích S = \\int_0^{1.5} (3 - 2x)dx + \\int_{1.5}^2 (2x - 3)dx = 2.25 + 0.25 = 2.5 \\neq 2 (SAI).' }
+      { key: 'a', text: 'Một nguyên hàm của $f(x)$ là $F(x) = x^2 - 3x$.', correct: true, explain: 'Đạo hàm $F\'(x) = 2x - 3 = f(x)$ nên mệnh đề này ĐÚNG.' },
+      { key: 'b', text: 'Nếu $F(x)$ là một nguyên hàm của $f(x)$ thỏa mãn $F(1) = 2$ thì $F(0) = 4$.', correct: true, explain: '$F(x) = x^2 - 3x + C$. Với $F(1) = 1 - 3 + C = 2 \\implies C = 4$. Do đó $F(0) = 4$ (ĐÚNG).' },
+      { key: 'c', text: 'Tích phân $\\int_0^2 f(x)dx = -2$.', correct: true, explain: '$\\int_0^2 (2x - 3)dx = [x^2 - 3x]_0^2 = 4 - 6 = -2$ (ĐÚNG).' },
+      { key: 'd', text: 'Diện tích hình phẳng giới hạn bởi đồ thị hàm số $y = f(x)$, trục hoành và hai đường thẳng $x = 0$, $x = 2$ bằng 2.', correct: false, explain: 'Nghiệm $f(x) = 0$ là $x = 1.5$. Diện tích $S = \\int_0^{1.5} (3 - 2x)dx + \\int_{1.5}^2 (2x - 3)dx = 2.25 + 0.25 = 2.5 \\neq 2$ (SAI).' }
     ]
   },
   {
     id: 'E2_2',
     num: 2,
-    statement: 'Một vật thể chuyển động có vận tốc xác định bởi phương trình v(t) = 3t^2 - 6t \\text{ (m/s)} với thời gian t \\in [0; 3] (giây).',
+    statement: 'Một vật thể chuyển động có vận tốc xác định bởi phương trình $v(t) = 3t^2 - 6t\\text{ (m/s)}$ với thời gian $t \\in [0; 3]$ (giây).',
     items: [
-      { key: 'a', text: 'Gia tốc của vật tại thời điểm t = 2 giây là 6 m/s².', correct: true, explain: 'a(t) = v\'(t) = 6t - 6. Tại t = 2: a(2) = 12 - 6 = 6 m/s² (ĐÚNG).' },
-      { key: 'b', text: 'Vật đổi chiều chuyển động tại thời điểm t = 2 giây.', correct: true, explain: 'v(t) = 3t(t - 2). Vận tốc đổi dấu khi qua t = 2 (ĐÚNG).' },
-      { key: 'c', text: 'Độ dịch chuyển của vật sau 3 giây là 0 mét.', correct: true, explain: 'Độ dịch chuyển s = \\int_0^3 (3t^2 - 6t)dt = [t^3 - 3t^2]_0^3 = 27 - 27 = 0 m (ĐÚNG).' },
-      { key: 'd', text: 'Tổng quãng đường vật thực sự đi được trong 3 giây đầu tiên là 4 mét.', correct: false, explain: 'Quãng đường S = \\int_0^3 |v(t)|dt = \\int_0^2 (6t - 3t^2)dt + \\int_2^3 (3t^2 - 6t)dt = 4 + 4 = 8 m \\neq 4 m (SAI).' }
+      { key: 'a', text: 'Gia tốc của vật tại thời điểm $t = 2$ giây là $6\\text{ m/s}^2$.', correct: true, explain: '$a(t) = v\'(t) = 6t - 6$. Tại $t = 2$: $a(2) = 12 - 6 = 6\\text{ m/s}^2$ (ĐÚNG).' },
+      { key: 'b', text: 'Vật đổi chiều chuyển động tại thời điểm $t = 2$ giây.', correct: true, explain: '$v(t) = 3t(t - 2)$. Vận tốc đổi dấu khi qua $t = 2$ (ĐÚNG).' },
+      { key: 'c', text: 'Độ dịch chuyển của vật sau 3 giây là 0 mét.', correct: true, explain: 'Độ dịch chuyển $s = \\int_0^3 (3t^2 - 6t)dt = [t^3 - 3t^2]_0^3 = 27 - 27 = 0\\text{ m}$ (ĐÚNG).' },
+      { key: 'd', text: 'Tổng quãng đường vật thực sự đi được trong 3 giây đầu tiên là 4 mét.', correct: false, explain: 'Quãng đường $S = \\int_0^3 |v(t)|dt = \\int_0^2 (6t - 3t^2)dt + \\int_2^3 (3t^2 - 6t)dt = 4 + 4 = 8\\text{ m} \\neq 4\\text{ m}$ (SAI).' }
     ]
   }
 ];
@@ -211,20 +211,20 @@ const EXAM_PART_3 = [
   {
     id: 'E3_1',
     num: 1,
-    question: 'Một vật thể có diện tích mặt cắt vuông góc với trục Ox tại điểm có hoành độ x là S(x) = 2x + 1 (với 0 \\le x \\le 4). Thể tích V của vật thể đó bằng bao nhiêu?',
+    question: 'Một vật thể có diện tích mặt cắt vuông góc với trục $Ox$ tại điểm có hoành độ $x$ là $S(x) = 2x + 1$ (với $0 \\le x \\le 4$). Thể tích $V$ của vật thể đó bằng bao nhiêu?',
     correctAnswer: 20,
     tolerance: 0.1,
     unit: '',
-    explanation: 'V = \\int_0^4 S(x)dx = \\int_0^4 (2x + 1)dx = \\left.[x^2 + x]\\right|_0^4 = 16 + 4 = 20.'
+    explanation: '$V = \\int_0^4 S(x)dx = \\int_0^4 (2x + 1)dx = \\left.[x^2 + x]\\right|_0^4 = 16 + 4 = 20$.'
   },
   {
     id: 'E3_2',
     num: 2,
-    question: 'Một ô tô đang chạy với vận tốc 20 m/s thì người lái đạp phanh. Kể từ lúc đạp phanh, ô tô chuyển động chậm dần đều với vận tốc v(t) = -40t + 20 (m/s). Kể từ lúc đạp phanh đến khi dừng hẳn, ô tô đi được quãng đường bao nhiêu mét?',
+    question: 'Một ô tô đang chạy với vận tốc 20 m/s thì người lái đạp phanh. Kể từ lúc đạp phanh, ô tô chuyển động chậm dần đều với vận tốc $v(t) = -40t + 20\\text{ (m/s)}$. Kể từ lúc đạp phanh đến khi dừng hẳn, ô tô đi được quãng đường bao nhiêu mét?',
     correctAnswer: 5,
     tolerance: 0.1,
     unit: 'm',
-    explanation: 'Xe dừng hẳn khi v(t) = 0 \\iff -40t + 20 = 0 \\iff t = 0.5\\text{ giây}. Quãng đường s = \\int_0^{0.5} (-40t + 20)dt = \\left.[-20t^2 + 20t]\\right|_0^{0.5} = -5 + 10 = 5\\text{ m}.'
+    explanation: 'Xe dừng hẳn khi $v(t) = 0 \\iff -40t + 20 = 0 \\iff t = 0.5\\text{ giây}$. Quãng đường $s = \\int_0^{0.5} (-40t + 20)dt = \\left.[-20t^2 + 20t]\\right|_0^{0.5} = -5 + 10 = 5\\text{ m}$.'
   }
 ];
 
@@ -736,8 +736,8 @@ export default function ExerciseBank() {
                             </div>
 
                             {isExamSubmitted && (
-                              <div className="w-full pt-1 text-[11px] text-slate-500 border-t border-sky-100 font-mono">
-                                💡 {it.explain}
+                              <div className="w-full pt-1 text-[11px] text-slate-500 border-t border-sky-100">
+                                💡 <MathView math={it.explain} />
                               </div>
                             )}
                           </div>
