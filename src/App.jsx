@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import HeroBanner from './components/HeroBanner';
-import Part1Calculus from './components/parts/Part1Calculus';
 import Part2DerivativeAnalysis from './components/parts/Part2DerivativeAnalysis';
+import Part1Calculus from './components/parts/Part1Calculus';
 import Part2Geometry from './components/parts/Part2Geometry';
 import Part4Probability from './components/parts/Part4Probability';
 import Footer from './components/Footer';
@@ -10,7 +10,7 @@ import DeploymentGuideModal from './components/DeploymentGuideModal';
 
 export default function App() {
   const [activeModule, setActiveModule] = useState('part1');
-  const [part1SubTab, setPart1SubTab] = useState('3d-solid');
+  const [calculusSubTab, setCalculusSubTab] = useState('3d-solid');
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
 
   const handleSelectModule = (modId) => {
@@ -21,9 +21,9 @@ export default function App() {
     }
   };
 
-  const handleSelectPart1SubTab = (subId) => {
-    setActiveModule('part1');
-    setPart1SubTab(subId);
+  const handleSelectCalculusSubTab = (subId) => {
+    setActiveModule('part2');
+    setCalculusSubTab(subId);
     const contentElem = document.getElementById('module-content');
     if (contentElem) {
       contentElem.scrollIntoView({ behavior: 'smooth' });
@@ -36,8 +36,8 @@ export default function App() {
       <Sidebar
         activeModule={activeModule}
         onSelectModule={handleSelectModule}
-        part1SubTab={part1SubTab}
-        onSelectPart1SubTab={handleSelectPart1SubTab}
+        calculusSubTab={calculusSubTab}
+        onSelectCalculusSubTab={handleSelectCalculusSubTab}
         onOpenDeployModal={() => setIsDeployModalOpen(true)}
       />
 
@@ -49,13 +49,13 @@ export default function App() {
 
           {/* Dynamic Module Content View */}
           <section id="module-content" className="scroll-mt-20">
-            {activeModule === 'part1' && (
+            {activeModule === 'part1' && <Part2DerivativeAnalysis />}
+            {activeModule === 'part2' && (
               <Part1Calculus 
-                activeSubTab={part1SubTab} 
-                onSelectSubTab={setPart1SubTab} 
+                activeSubTab={calculusSubTab} 
+                onSelectSubTab={setCalculusSubTab} 
               />
             )}
-            {activeModule === 'part2' && <Part2DerivativeAnalysis />}
             {activeModule === 'part3' && <Part2Geometry />}
             {activeModule === 'part4' && <Part4Probability />}
           </section>

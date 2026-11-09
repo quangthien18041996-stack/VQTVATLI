@@ -122,7 +122,7 @@ export default function Part2Geometry() {
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-teal-50 via-sky-50 to-emerald-50/60 border border-teal-200/80 rounded-2xl p-6 shadow-xs">
         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-800 border border-teal-200 inline-block mb-3">
-          CHUYÊN ĐỀ 2 • TOÁN 12 KNTT (CHƯƠNG V)
+          CHUYÊN ĐỀ 3 • TOÁN 12 KNTT (CHƯƠNG V)
         </span>
         <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
           Phương Pháp Tọa Độ Trong Không Gian Oxyz & Mô Hình Mặt Cầu

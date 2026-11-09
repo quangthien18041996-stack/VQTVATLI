@@ -23,7 +23,7 @@ export default function Part1Calculus({ activeSubTab = '3d-solid', onSelectSubTa
       <div className="bg-gradient-to-r from-blue-50 via-sky-50 to-indigo-50/60 border border-sky-200/80 rounded-2xl p-6 relative overflow-hidden shadow-xs">
         <div className="relative z-10 max-w-3xl">
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-200 inline-block mb-3">
-            CHUYÊN ĐỀ 1 • TOÁN 12 KNTT (CHƯƠNG IV)
+            CHUYÊN ĐỀ 2 • TOÁN 12 KNTT (CHƯƠNG IV)
           </span>
           <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
             Nguyên Hàm, Tích Phân & Trực Quan Hóa Khối Tròn Xoay

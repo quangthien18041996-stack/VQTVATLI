@@ -338,7 +338,7 @@ export default function Part2DerivativeAnalysis() {
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md mb-3 border border-white/20">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Toán Học 12 (Tập 1) • SGK Kết Nối Tri Thức Với Cuộc Sống</span>
+            <span>CHUYÊN ĐỀ 1 • TOÁN 12 KNTT (CHƯƠNG I - TẬP 1)</span>
           </div>
           <h2 className="text-2xl md:text-3xl font-black tracking-tight leading-tight">
             Chương I: Ứng Dụng Đạo Hàm Để Khảo Sát & Vẽ Đồ Thị Hàm Số

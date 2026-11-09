@@ -17,8 +17,8 @@ import {
 export default function Sidebar({ 
   activeModule, 
   onSelectModule, 
-  part1SubTab, 
-  onSelectPart1SubTab, 
+  calculusSubTab, 
+  onSelectCalculusSubTab, 
   onOpenDeployModal 
 }) {
   const [isOpenMobile, setIsOpenMobile] = useState(false);
@@ -27,10 +27,18 @@ export default function Sidebar({
     { 
       id: 'part1', 
       num: '1', 
+      title: 'Khảo Sát & Vẽ Đồ Thị Hàm Số', 
+      chapter: 'Chương I (Tập 1)',
+      icon: TrendingUp,
+      accent: 'from-blue-600 to-cyan-500'
+    },
+    { 
+      id: 'part2', 
+      num: '2', 
       title: 'Nguyên Hàm & Tích Phân', 
       chapter: 'Chương IV (Tập 2)',
       icon: Box,
-      accent: 'from-blue-600 to-cyan-500',
+      accent: 'from-amber-600 to-orange-500',
       subTabs: [
         { id: '3d-solid', label: '1. Khối Tròn Xoay 3D' },
         { id: 'riemann', label: '2. Bản Chất Tích Phân' },
@@ -38,14 +46,6 @@ export default function Sidebar({
         { id: 'exercises', label: '4. Luyện Đề & Chấm Điểm' },
         { id: 'theory', label: '5. Sổ Tay Bảng Nguyên Hàm' },
       ]
-    },
-    { 
-      id: 'part2', 
-      num: '2', 
-      title: 'Khảo Sát & Vẽ Đồ Thị Hàm Số', 
-      chapter: 'Chương I (Tập 1)',
-      icon: TrendingUp,
-      accent: 'from-amber-600 to-orange-500'
     },
     { 
       id: 'part3', 
@@ -71,7 +71,7 @@ export default function Sidebar({
   };
 
   const handleSubTabClick = (subId) => {
-    if (onSelectPart1SubTab) onSelectPart1SubTab(subId);
+    if (onSelectCalculusSubTab) onSelectCalculusSubTab(subId);
     setIsOpenMobile(false);
   };
 
@@ -181,11 +181,11 @@ export default function Sidebar({
                     }`} />
                   </button>
 
-                  {/* Sub-tabs for Part 1 when active */}
+                  {/* Sub-tabs when active */}
                   {isActive && m.subTabs && (
                     <div className="pl-11 pr-2 py-1 space-y-1">
                       {m.subTabs.map((sub) => {
-                        const isSubActive = part1SubTab === sub.id;
+                        const isSubActive = calculusSubTab === sub.id;
                         return (
                           <button
                             key={sub.id}
