@@ -191,27 +191,39 @@ export default function StemSimulations() {
           </div>
 
           {/* SVG Illustration */}
-          <div className="flex flex-col items-center justify-center bg-white rounded-xl p-4 border border-sky-200 shadow-xs">
-            <svg viewBox="0 0 320 220" className="w-full max-w-[320px] h-auto">
+          <div className="flex flex-col items-center justify-center bg-white rounded-xl p-5 border border-sky-200 shadow-xs">
+            <svg viewBox="0 0 420 220" className="w-full max-w-[420px] h-auto overflow-visible">
               <defs>
                 <linearGradient id="potteryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#f59e0b" />
                   <stop offset="100%" stopColor="#d97706" />
                 </linearGradient>
               </defs>
-              <line x1="20" y1="110" x2="300" y2="110" stroke="#94a3b8" strokeDasharray="4 4" strokeWidth="1.5" />
+              {/* Trục xoay Ox */}
+              <line x1="25" y1="110" x2="390" y2="110" stroke="#94a3b8" strokeDasharray="4 4" strokeWidth="1.5" />
+              <polygon points="390,106 398,110 390,114" fill="#94a3b8" />
+
+              {/* Vỏ ngoài bình gốm */}
               <path
-                d="M 40 110 Q 120 70 200 40 Q 250 20 280 20 L 280 200 Q 250 200 200 180 Q 120 150 40 110 Z"
+                d="M 75 110 Q 150 70 230 40 Q 270 20 300 20 L 300 200 Q 270 200 230 180 Q 150 150 75 110 Z"
                 fill="url(#potteryGrad)"
-                opacity="0.9"
+                opacity="0.92"
+                stroke="#d97706"
+                strokeWidth="1.5"
               />
+
+              {/* Lòng rỗng bên trong (co giãn trực quan theo độ dày d) */}
               <path
-                d="M 55 110 Q 125 78 200 50 Q 250 32 280 32 L 280 188 Q 250 188 200 170 Q 125 142 55 110 Z"
+                d={`M ${75 + thickness * 5} 110 Q 150 ${70 + thickness * 3.5} 230 ${40 + thickness * 4} Q 270 ${20 + thickness * 4.5} 300 ${20 + thickness * 4.5} L 300 ${200 - thickness * 4.5} Q 270 ${200 - thickness * 4.5} 230 ${180 - thickness * 4} Q 150 ${150 - thickness * 3.5} ${75 + thickness * 5} 110 Z`}
                 fill="#f0f7ff"
+                stroke="#cbd5e1"
+                strokeWidth="1"
               />
-              <text x="160" y="114" fill="#64748b" fontSize="10" textAnchor="middle">Trục xoay Ox</text>
-              <text x="285" y="110" fill="#b45309" fontSize="10" textAnchor="start" fontWeight="bold">Miệng bình</text>
-              <text x="35" y="125" fill="#b45309" fontSize="10" textAnchor="end" fontWeight="bold">Đáy bình</text>
+
+              {/* Chú thích văn bản rộng rãi, không bị tràn viền */}
+              <text x="190" y="114" fill="#64748b" fontSize="11" textAnchor="middle" fontWeight="500">Trục xoay Ox</text>
+              <text x="312" y="114" fill="#b45309" fontSize="11" textAnchor="start" fontWeight="bold">Miệng bình</text>
+              <text x="65" y="114" fill="#b45309" fontSize="11" textAnchor="end" fontWeight="bold">Đáy bình</text>
             </svg>
             <p className="text-[11px] text-slate-500 text-center mt-3">
               Mặt cắt ngang cấu trúc bình gốm Bát Tràng (Phần đất sét màu cam nằm giữa vỏ ngoài và lòng rỗng).
