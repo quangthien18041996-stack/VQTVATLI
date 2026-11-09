@@ -87,7 +87,7 @@ export default function StemSimulations() {
             }`}
           >
             <Factory className="w-3.5 h-3.5" />
-            Gốm Sứ Bát Tràng (Bài 4.35)
+            Gốm Sứ Bát Tràng
           </button>
           <button
             onClick={() => setActiveTab('ballistics')}

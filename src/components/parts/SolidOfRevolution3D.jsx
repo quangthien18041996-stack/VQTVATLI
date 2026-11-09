@@ -6,7 +6,7 @@ import { RotateCw, Play, Pause, Layers, Tag, Disc, ZoomIn, ZoomOut, RotateCcw } 
 const PRESETS = [
   {
     id: 'pottery',
-    name: 'Bình gốm sứ Bát Tràng (Bài 4.35 SGK)',
+    name: 'Bình gốm sứ Bát Tràng',
     fnStr: 'f(x) = \\frac{1}{175}x^2 + \\frac{3}{35}x + 2',
     fn: (x) => (1 / 175) * x * x + (3 / 35) * x + 2,
     defaultA: 0,
