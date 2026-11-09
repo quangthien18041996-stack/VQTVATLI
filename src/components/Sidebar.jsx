@@ -11,7 +11,8 @@ import {
   ChevronRight, 
   BookOpen, 
   Sparkles,
-  Layers
+  Layers,
+  Calculator
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -19,7 +20,8 @@ export default function Sidebar({
   onSelectModule, 
   calculusSubTab, 
   onSelectCalculusSubTab, 
-  onOpenDeployModal 
+  onOpenDeployModal,
+  onOpenCasioModal
 }) {
   const [isOpenMobile, setIsOpenMobile] = useState(false);
 
@@ -93,13 +95,23 @@ export default function Sidebar({
           </div>
         </div>
 
-        <button
-          onClick={() => setIsOpenMobile(!isOpenMobile)}
-          className="p-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-sky-50 transition-colors"
-          aria-label="Toggle menu"
-        >
-          {isOpenMobile ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onOpenCasioModal}
+            className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <Calculator className="w-4 h-4 text-amber-600" />
+            <span>Casio</span>
+          </button>
+
+          <button
+            onClick={() => setIsOpenMobile(!isOpenMobile)}
+            className="p-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-sky-50 transition-colors"
+            aria-label="Toggle menu"
+          >
+            {isOpenMobile ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Backdrop overlay on mobile */}
@@ -136,6 +148,32 @@ export default function Sidebar({
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Casio Quick Handbook Button */}
+          <div className="px-4 pt-3">
+            <button
+              onClick={() => {
+                if (onOpenCasioModal) onOpenCasioModal();
+                setIsOpenMobile(false);
+              }}
+              className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md shadow-amber-500/20 flex items-center justify-between transition-all group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white">
+                  <Calculator className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-black tracking-tight leading-tight">
+                    Sổ Tay Máy Tính Casio
+                  </div>
+                  <div className="text-[10px] text-amber-100 font-medium">
+                    fx-580VNX & fx-880BTG
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-white/80 group-hover:translate-x-0.5 transition-transform" />
+            </button>
           </div>
 
           {/* Module Navigation List */}

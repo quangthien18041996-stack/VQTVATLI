@@ -20,10 +20,11 @@ import {
   ShieldAlert,
   Car,
   Gift,
-  HelpCircle as QuestionIcon
+  HelpCircle as QuestionIcon,
+  Calculator
 } from 'lucide-react';
 
-export default function Part4Probability() {
+export default function Part4Probability({ onOpenCasioModal }) {
   const [activeTab, setActiveTab] = useState('conditional'); // 'conditional' | 'bayes-tree' | 'exercises' | 'theory'
 
   /* ==========================================================
@@ -151,8 +152,8 @@ export default function Part4Probability() {
   return (
     <div className="space-y-6">
       {/* Overview Intro Banner */}
-      <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-sky-800 text-white rounded-2xl p-6 shadow-sm relative overflow-hidden">
-        <div className="relative z-10 max-w-3xl space-y-2">
+      <div className="bg-gradient-to-r from-purple-700 via-indigo-700 to-sky-800 text-white rounded-2xl p-6 shadow-sm relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative z-10 max-w-2xl space-y-2">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md text-purple-100 inline-flex items-center gap-1.5 border border-white/20">
               <Sparkles className="w-3.5 h-3.5" />
@@ -170,6 +171,16 @@ export default function Part4Probability() {
             Hệ thống hóa toàn bộ kiến thức <strong>Bài 18 (Xác suất có điều kiện, bảng thống kê 2x2)</strong> và <strong>Bài 19 (Công thức xác suất toàn phần & Định lý Bayes)</strong>. Trực quan hóa mô hình cây xác suất động và các ứng dụng đột phá trong chẩn đoán y tế, khoa học dữ liệu và trí tuệ nhân tạo (AI).
           </p>
         </div>
+
+        {onOpenCasioModal && (
+          <button
+            onClick={onOpenCasioModal}
+            className="relative z-10 self-start md:self-center px-4 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-orange-500/20 flex items-center gap-2 transition-all cursor-pointer shrink-0"
+          >
+            <Calculator className="w-4 h-4 text-white" />
+            <span>Mẹo Casio Chương VI</span>
+          </button>
+        )}
       </div>
 
       {/* Navigation Sub-Tabs */}

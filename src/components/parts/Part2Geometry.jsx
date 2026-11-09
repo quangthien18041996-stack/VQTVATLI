@@ -16,10 +16,11 @@ import {
   TrendingUp, 
   Maximize2,
   RefreshCw,
-  Cpu
+  Cpu,
+  Calculator
 } from 'lucide-react';
 
-export default function Part2Geometry() {
+export default function Part2Geometry({ onOpenCasioModal }) {
   const [activeTab, setActiveTab] = useState('vectors'); // 'vectors' | 'plane-sphere' | 'exercises' | 'theory'
 
   /* -------------------------------------------------------------
@@ -372,9 +373,9 @@ export default function Part2Geometry() {
   return (
     <div className="space-y-6">
       {/* Top Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-teal-900 via-slate-900 to-emerald-950 border border-teal-500/30 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-r from-teal-900 via-slate-900 to-emerald-950 border border-teal-500/30 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 space-y-3">
+        <div className="relative z-10 space-y-3 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-teal-500/20 text-teal-300 border border-teal-400/30 tracking-wide uppercase">
               CHUYÊN ĐỀ 3 • TOÁN 12 KNTT (CHƯƠNG V - TẬP 2)
@@ -390,6 +391,16 @@ export default function Part2Geometry() {
             Khám phá trực quan hệ tọa độ không gian 3 chiều qua <strong>mô phỏng WebGL thời gian thực</strong>: Vectơ và tích có hướng, phương trình mặt phẳng, đường thẳng, mặt cầu và hệ thống luyện đề thi chuẩn cấu trúc 2025.
           </p>
         </div>
+
+        {onOpenCasioModal && (
+          <button
+            onClick={onOpenCasioModal}
+            className="relative z-10 self-start md:self-center px-4 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-orange-500/20 flex items-center gap-2 transition-all cursor-pointer shrink-0"
+          >
+            <Calculator className="w-4 h-4 text-white" />
+            <span>Mẹo Casio Chương V</span>
+          </button>
+        )}
       </div>
 
       {/* Main Navigation Sub-Tabs */}

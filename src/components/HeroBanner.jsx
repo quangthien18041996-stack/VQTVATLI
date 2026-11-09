@@ -1,7 +1,7 @@
 import React from 'react';
-import { Box, Compass, TrendingUp, GitBranch, Sparkles, ArrowRight } from 'lucide-react';
+import { Box, Compass, TrendingUp, GitBranch, Sparkles, ArrowRight, Calculator } from 'lucide-react';
 
-export default function HeroBanner({ onSelectModule }) {
+export default function HeroBanner({ onSelectModule, onOpenCasioModal }) {
   const cards = [
     {
       id: 'part1',
@@ -82,6 +82,20 @@ export default function HeroBanner({ onSelectModule }) {
               <span className="w-2 h-2 rounded-full bg-amber-500"></span>
               <span className="text-slate-700 font-medium">Sẵn sàng xuất bản & quét mã QR chấm thi</span>
             </div>
+          </div>
+
+          {/* Quick CTA to Casio Modal */}
+          <div className="mt-5">
+            <button
+              onClick={onOpenCasioModal}
+              className="px-4 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer group"
+            >
+              <div className="p-1 rounded-lg bg-white/20">
+                <Calculator className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span>Sổ Tay Bấm Máy Tính Casio fx-580VNX & fx-880BTG (Trọn Bộ 4 Chương)</span>
+              <ArrowRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
       </div>

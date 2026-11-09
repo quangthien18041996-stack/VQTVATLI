@@ -61,7 +61,7 @@ const FUNCTION_TYPES = [
   }
 ];
 
-export default function Part2DerivativeAnalysis() {
+export default function Part2DerivativeAnalysis({ onOpenCasioModal }) {
   const [activeTab, setActiveTab] = useState('grapher'); // 'grapher' | 'asymptotes' | 'exercises' | 'theory'
   
   // Grapher state
@@ -333,9 +333,9 @@ export default function Part2DerivativeAnalysis() {
   return (
     <div className="space-y-6">
       {/* Module Title Banner */}
-      <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-cyan-500 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-blue-700 via-sky-600 to-cyan-500 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="absolute right-0 top-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-3xl">
+        <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md mb-3 border border-white/20">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             <span>CHUYÊN ĐỀ 1 • TOÁN 12 KNTT (CHƯƠNG I - TẬP 1)</span>
@@ -347,6 +347,18 @@ export default function Part2DerivativeAnalysis() {
             Trực quan hóa sự biến thiên, cực trị, điểm uốn tâm đối xứng, 3 loại tiệm cận (Đứng, Ngang, Xiên) và các mô hình bài toán tối ưu hóa kỹ thuật - kinh tế thực tiễn.
           </p>
         </div>
+
+        {onOpenCasioModal && (
+          <button
+            onClick={onOpenCasioModal}
+            className="relative z-10 self-start md:self-center px-4 py-2.5 rounded-2xl text-xs font-black bg-white/15 hover:bg-white/25 backdrop-blur-md text-white border border-white/30 flex items-center gap-2 transition-all cursor-pointer shadow-md shrink-0 group"
+          >
+            <div className="p-1 rounded-lg bg-amber-400 text-slate-950 font-bold">
+              <Calculator className="w-3.5 h-3.5" />
+            </div>
+            <span>Mẹo Casio Chương I</span>
+          </button>
+        )}
       </div>
 
       {/* Navigation Sub-Tabs */}
