@@ -35,8 +35,15 @@ export default function Part2Geometry() {
     dir.position.set(10, 20, 10);
     scene.add(dir);
 
-    const axesHelper = new THREE.AxesHelper(6);
-    scene.add(axesHelper);
+    // 3 Mũi tên trục không gian Oxyz
+    const arrowX = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 7.0, 0xf43f5e, 0.9, 0.45);
+    scene.add(arrowX);
+
+    const arrowY = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 7.0, 0x10b981, 0.9, 0.45);
+    scene.add(arrowY);
+
+    const arrowZ = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0), 7.0, 0x38bdf8, 0.9, 0.45);
+    scene.add(arrowZ);
 
     const sphereGeom = new THREE.SphereGeometry(sphereR, 32, 32);
     const sphereMat = new THREE.MeshStandardMaterial({
@@ -90,7 +97,7 @@ export default function Part2Geometry() {
     let animId;
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      if (!isDragging) rotY += 0.003;
+      if (!isDragging) rotY += 0.005;
 
       const r = 20;
       camera.position.x = r * Math.cos(rotX) * Math.sin(rotY);

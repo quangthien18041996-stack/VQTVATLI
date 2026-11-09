@@ -123,7 +123,7 @@ export default function SolidOfRevolution3D() {
   const [boundB, setBoundB] = useState(PRESETS[0].defaultB);
   const [sweepAngle, setSweepAngle] = useState(360);
   const [isWireframe, setIsWireframe] = useState(false);
-  const [autoRotate, setAutoRotate] = useState(false); // Default false so user can inspect clearly
+  const [autoRotate, setAutoRotate] = useState(true); // Default false so user can inspect clearly
 
   // Educational States
   const [showLabels, setShowLabels] = useState(true);
@@ -228,6 +228,31 @@ export default function SolidOfRevolution3D() {
     ]);
     const axisLineY = new THREE.Line(axisGeomY, axisMatY);
     scene.add(axisLineY);
+
+    // Dấu mũi tên 3D trục Ox (đỏ)
+    const arrowGeomX = new THREE.ConeGeometry(0.4, 1.2, 16);
+    const arrowMatX = new THREE.MeshStandardMaterial({ 
+      color: 0xf43f5e, 
+      roughness: 0.25,
+      emissive: 0x9f1239,
+      emissiveIntensity: 0.35
+    });
+    const arrowMeshX = new THREE.Mesh(arrowGeomX, arrowMatX);
+    arrowMeshX.position.set(maxXAxis + 0.6, 0, 0);
+    arrowMeshX.rotation.z = -Math.PI / 2;
+    scene.add(arrowMeshX);
+
+    // Dấu mũi tên 3D trục Oy (xanh lá)
+    const arrowGeomY = new THREE.ConeGeometry(0.4, 1.2, 16);
+    const arrowMatY = new THREE.MeshStandardMaterial({ 
+      color: 0x10b981, 
+      roughness: 0.25,
+      emissive: 0x065f46,
+      emissiveIntensity: 0.35
+    });
+    const arrowMeshY = new THREE.Mesh(arrowGeomY, arrowMatY);
+    arrowMeshY.position.set(0, maxYAxis + 0.6, 0);
+    scene.add(arrowMeshY);
 
     // 4. Generate Solid of Revolution Mesh
     const xSteps = 45;
@@ -501,7 +526,7 @@ export default function SolidOfRevolution3D() {
     const animate = () => {
       animId = requestAnimationFrame(animate);
       if (autoRotate && !isDragging) {
-        rotY += 0.0035;
+        rotY += 0.005;
       }
       
       // Update camera position with dynamic zoomRadius
