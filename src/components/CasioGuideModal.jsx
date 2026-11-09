@@ -393,10 +393,10 @@ export default function CasioGuideModal({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Filter Toolbar */}
-        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-          {/* Chapter Selector */}
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none pb-1 sm:pb-0">
+        {/* Filter Toolbar - 2 Distinct Rows for 100% Visibility */}
+        <div className="p-4 sm:p-5 bg-slate-50 border-b border-slate-200 space-y-3">
+          {/* Row 1: All 5 Chapter Tabs - flex-wrap ensures all 4 chapters + All are 100% visible */}
+          <div className="flex flex-wrap items-center gap-2">
             {[
               { id: 'all', label: 'Tất Cả 4 Chương' },
               { id: 'part1', label: 'Chương I: Đạo Hàm' },
@@ -407,10 +407,10 @@ export default function CasioGuideModal({ isOpen, onClose }) {
               <button
                 key={tab.id}
                 onClick={() => setSelectedChapter(tab.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                   selectedChapter === tab.id
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                    ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-400/30'
+                    : 'bg-white text-slate-700 hover:bg-slate-100 hover:text-blue-600 border border-slate-200 shadow-2xs'
                 }`}
               >
                 {tab.label}
@@ -418,41 +418,41 @@ export default function CasioGuideModal({ isOpen, onClose }) {
             ))}
           </div>
 
-          {/* Model Switcher & Search */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <div className="relative flex-1 sm:w-56">
+          {/* Row 2: Search Input & Model Switcher */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2.5 border-t border-slate-200/70">
+            <div className="relative flex-1">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm thủ thuật (min, max, tích có hướng...)"
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
+                placeholder="Tìm nhanh thủ thuật (min, max, tích có hướng, tiếp tuyến, bayes...)"
+                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 shadow-2xs"
               />
             </div>
 
             {/* Model Filter */}
-            <div className="flex items-center bg-white border border-slate-200 rounded-xl p-0.5">
+            <div className="flex items-center bg-white border border-slate-200 rounded-xl p-0.5 shadow-2xs shrink-0 self-start sm:self-auto">
               <button
                 onClick={() => setSelectedModel('both')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors ${
-                  selectedModel === 'both' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
+                  selectedModel === 'both' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 Cả 2 Dòng Máy
               </button>
               <button
                 onClick={() => setSelectedModel('580')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors ${
-                  selectedModel === '580' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
+                  selectedModel === '580' ? 'bg-blue-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 fx-580VNX
               </button>
               <button
                 onClick={() => setSelectedModel('880')}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-colors ${
-                  selectedModel === '880' ? 'bg-amber-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
+                  selectedModel === '880' ? 'bg-amber-600 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 fx-880BTG
