@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import MathView from '../MathView';
+import Part2ExerciseBank from './Part2ExerciseBank';
 import { 
   TrendingUp, 
   Sliders, 
@@ -13,7 +14,8 @@ import {
   Compass,
   CheckCircle2,
   Box,
-  DollarSign
+  DollarSign,
+  FileCheck
 } from 'lucide-react';
 
 /* ============================================================
@@ -60,7 +62,7 @@ const FUNCTION_TYPES = [
 ];
 
 export default function Part2DerivativeAnalysis() {
-  const [activeTab, setActiveTab] = useState('grapher'); // 'grapher' | 'asymptotes' | 'stem' | 'theory'
+  const [activeTab, setActiveTab] = useState('grapher'); // 'grapher' | 'asymptotes' | 'exercises' | 'theory'
   
   // Grapher state
   const [funcType, setFuncType] = useState('cubic');
@@ -68,23 +70,6 @@ export default function Part2DerivativeAnalysis() {
   const [showTangent, setShowTangent] = useState(true);
   const [probeX, setProbeX] = useState(1);
   const canvasRef = useRef(null);
-
-  // STEM Optimization 1: Box problem state
-  const [sheetSize, setSheetSize] = useState(24);
-  const [cutSize, setCutSize] = useState(4);
-  const optBoxCut = sheetSize / 6;
-  const currentBoxVol = cutSize * Math.pow(Math.max(0, sheetSize - 2 * cutSize), 2);
-  const maxBoxVol = optBoxCut * Math.pow(sheetSize - 2 * optBoxCut, 2);
-
-  // STEM Optimization 2: Stadium ticket pricing (Bài 5 SGK)
-  const [ticketPrice, setTicketPrice] = useState(90); // nghìn đồng
-  // Base: 100k -> 27k viewers. Each 10k decrease -> +3k viewers
-  // N(p) = 27 + (100 - p) * 0.3 = 57 - 0.3p (nghìn người)
-  const viewers = Math.max(0, Math.min(55, +(57 - 0.3 * ticketPrice).toFixed(1)));
-  const revenue = +(ticketPrice * viewers).toFixed(1); // triệu đồng
-  // Revenue function R(p) = p(57 - 0.3p) = -0.3p² + 57p. R'(p) = -0.6p + 57 = 0 => p = 95 nghìn đồng!
-  const optTicketPrice = 95;
-  const maxRevenue = +(optTicketPrice * (57 - 0.3 * optTicketPrice)).toFixed(1);
 
   // Update params when changing function type
   const handleSelectType = (typeId) => {
@@ -391,15 +376,15 @@ export default function Part2DerivativeAnalysis() {
         </button>
 
         <button
-          onClick={() => setActiveTab('stem')}
+          onClick={() => setActiveTab('exercises')}
           className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
-            activeTab === 'stem'
+            activeTab === 'exercises'
               ? 'bg-blue-600 text-white shadow-sm'
               : 'bg-white text-slate-600 hover:bg-sky-50 border border-sky-100'
           }`}
         >
-          <Target className="w-4 h-4" />
-          3. Bài Toán Tối Ưu Hóa Thực Tiễn (STEM)
+          <FileCheck className="w-4 h-4" />
+          3. Luyện Đề & Chấm Điểm
         </button>
 
         <button
@@ -724,136 +709,10 @@ export default function Part2DerivativeAnalysis() {
       )}
 
       {/* =======================================================
-          TAB 3: BÀI TOÁN TỐI ƯU HÓA THỰC TIỄN (STEM OPTIMIZATION)
+          TAB 3: LUYỆN ĐỀ & CHẤM ĐIỂM (BÀI TẬP SGK & THI THỬ TN THPT)
           ======================================================= */}
-      {activeTab === 'stem' && (
-        <div className="space-y-6">
-          {/* Problem 1: Folding Box (Bài 2 SGK) */}
-          <div className="bg-white rounded-2xl p-6 border border-sky-100 shadow-sm space-y-4">
-            <div className="border-l-3 border-blue-600 pl-3">
-              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider block">Bài Toán STEM 1 (Bài 2 SGK)</span>
-              <h4 className="text-slate-900 font-bold text-base mt-0.5">
-                Thiết Kế Chiếc Hộp Gấp Có Thể Tích Lớn Nhất Từ Tấm Tôn Vuông
-              </h4>
-              <p className="text-xs text-slate-600 mt-1">
-                Từ một tấm tôn hình vuông cạnh <MathView math="L = 24\text{ cm}" />, người ta cắt bỏ 4 hình vuông bằng nhau ở 4 góc cạnh <MathView math="x" /> rồi gập các mép lại thành một chiếc hộp không nắp.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-sky-50/40 p-4 rounded-xl border border-sky-100">
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs">
-                  <span className="font-semibold text-slate-700">Kích thước cạnh cắt góc (x):</span>
-                  <span className="font-bold text-blue-700 font-mono">{cutSize} cm</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="11.5"
-                  step="0.5"
-                  value={cutSize}
-                  onChange={(e) => setCutSize(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                />
-
-                <div className="bg-white p-3 rounded-lg border border-sky-200 text-xs space-y-1">
-                  <p>Hàm thể tích: <MathView math="V(x) = x(L - 2x)^2 = x(24 - 2x)^2" className="text-blue-800 font-semibold" /></p>
-                  <p>Đạo hàm: <MathView math="V'(x) = 12x^2 - 8Lx + L^2 = (2x - L)(6x - L)" className="text-blue-800 font-semibold" /></p>
-                  <p className="text-emerald-700 font-bold">
-                    Cực đại đạt được chính xác khi: <MathView math="x = \frac{L}{6} = 4\text{ cm}" />
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-xl border border-sky-200 shadow-xs flex flex-col justify-between h-full">
-                <div className="space-y-2">
-                  <span className="text-xs font-semibold text-slate-500 block">Kết quả thể tích tính toán:</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-slate-900 font-mono">
-                      {currentBoxVol.toFixed(1)}
-                    </span>
-                    <span className="text-xs text-slate-500 font-bold">cm³</span>
-                  </div>
-                  <span className="text-xs text-emerald-600 font-bold block">
-                    Thể tích cực đại tối ưu: {maxBoxVol.toFixed(1)} cm³
-                  </span>
-                </div>
-
-                <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden mt-3">
-                  <div
-                    className="bg-blue-600 h-full rounded-full transition-all duration-200"
-                    style={{ width: `${Math.min(100, (currentBoxVol / maxBoxVol) * 100)}%` }}
-                  />
-                </div>
-                <span className="text-[10px] text-slate-400 text-right mt-1">
-                  Hiệu suất dung tích: {Math.round((currentBoxVol / maxBoxVol) * 100)}%
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Problem 2: Ticket Pricing (Bài 5 SGK Trang 33) */}
-          <div className="bg-white rounded-2xl p-6 border border-emerald-100 shadow-sm space-y-4">
-            <div className="border-l-3 border-emerald-600 pl-3">
-              <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider block">Bài Toán STEM 2 (Bài 5 SGK Trang 33)</span>
-              <h4 className="text-slate-900 font-bold text-base mt-0.5">
-                Bài Toán Tối Ưu Hóa Doanh Thu Bán Vé Trận Bóng Đá
-              </h4>
-              <p className="text-xs text-slate-600 mt-1">
-                Sân vận động có sức chứa 55,000 chỗ. Với giá vé 100 nghìn đồng thì có 27,000 khán giả. Thăm dò cho thấy cứ giảm giá vé 10 nghìn đồng sẽ có thêm 3,000 khán giả. Cần định giá vé bao nhiêu để tổng doanh thu đạt cực đại?
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center bg-emerald-50/40 p-4 rounded-xl border border-emerald-100">
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs">
-                  <span className="font-semibold text-slate-700">Giá vé điều chỉnh (p):</span>
-                  <span className="font-bold text-emerald-700 font-mono">{ticketPrice} nghìn đồng</span>
-                </div>
-                <input
-                  type="range"
-                  min="40"
-                  max="140"
-                  step="5"
-                  value={ticketPrice}
-                  onChange={(e) => setTicketPrice(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-
-                <div className="bg-white p-3 rounded-lg border border-emerald-200 text-xs space-y-1">
-                  <p>Hàm số lượng khán giả: <MathView math="N(p) = 27 + (100 - p) \cdot 0.3 = 57 - 0.3p" className="text-emerald-800 font-semibold" /></p>
-                  <p>Doanh thu: <MathView math="R(p) = p \cdot N(p) = -0.3p^2 + 57p" className="text-emerald-800 font-semibold" /></p>
-                  <p className="text-emerald-700 font-bold">
-                    Giải <MathView math="R'(p) = -0.6p + 57 = 0 \implies p = 95" /> (nghìn đồng)
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-xs flex flex-col justify-between h-full">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500 font-semibold">Khán giả đến sân:</span>
-                    <span className="text-sm font-bold text-slate-800 font-mono">{(viewers * 1000).toLocaleString()} người</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-slate-500 font-semibold">Tổng doanh thu:</span>
-                    <span className="text-xl font-black text-emerald-600 font-mono">{revenue.toLocaleString()} triệu đ</span>
-                  </div>
-                  <span className="text-xs text-emerald-700 font-bold block pt-1 border-t border-slate-100">
-                    Doanh thu cực đại: {maxRevenue.toLocaleString()} triệu đồng (ở mức giá 95k)
-                  </span>
-                </div>
-
-                <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden mt-3">
-                  <div
-                    className="bg-emerald-600 h-full rounded-full transition-all duration-200"
-                    style={{ width: `${Math.min(100, (revenue / maxRevenue) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {activeTab === 'exercises' && (
+        <Part2ExerciseBank />
       )}
 
       {/* =======================================================
