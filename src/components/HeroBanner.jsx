@@ -1,7 +1,7 @@
 import React from 'react';
-import { Box, Compass, TrendingUp, GitBranch, Sparkles, ArrowRight, Calculator } from 'lucide-react';
+import { Box, Compass, TrendingUp, GitBranch, Sparkles, ArrowRight, Calculator, Camera } from 'lucide-react';
 
-export default function HeroBanner({ onSelectModule, onOpenCasioModal }) {
+export default function HeroBanner({ onSelectModule, onOpenCasioModal, onOpenAR }) {
   const cards = [
     {
       id: 'part1',
@@ -84,8 +84,21 @@ export default function HeroBanner({ onSelectModule, onOpenCasioModal }) {
             </div>
           </div>
 
-          {/* Quick CTA to Casio Modal */}
-          <div className="mt-5">
+          {/* Quick CTA to AR & Casio Modal */}
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            {/* AR Button */}
+            <button
+              onClick={onOpenAR}
+              className="px-4 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-600 hover:to-indigo-700 text-white shadow-md shadow-cyan-500/25 flex items-center gap-2 transition-all cursor-pointer group"
+            >
+              <div className="p-1 rounded-lg bg-white/20">
+                <Camera className="w-3.5 h-3.5 text-white animate-pulse" />
+              </div>
+              <span>Chiếu AR 3D Lên Bàn Học (Camera Thực Tế)</span>
+              <ArrowRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            {/* Casio Button */}
             <button
               onClick={onOpenCasioModal}
               className="px-4 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md shadow-orange-500/25 flex items-center gap-2 transition-all cursor-pointer group"
@@ -93,8 +106,7 @@ export default function HeroBanner({ onSelectModule, onOpenCasioModal }) {
               <div className="p-1 rounded-lg bg-white/20">
                 <Calculator className="w-3.5 h-3.5 text-white" />
               </div>
-              <span>Sổ Tay Bấm Máy Tính Casio fx-580VNX & fx-880BTG (Trọn Bộ 4 Chương)</span>
-              <ArrowRight className="w-3.5 h-3.5 text-white/80 group-hover:translate-x-1 transition-transform" />
+              <span>Sổ Tay Bấm Máy Casio fx-580 & 880</span>
             </button>
           </div>
         </div>

@@ -12,7 +12,8 @@ import {
   BookOpen, 
   Sparkles,
   Layers,
-  Calculator
+  Calculator,
+  Camera
 } from 'lucide-react';
 
 export default function Sidebar({ 
@@ -21,7 +22,8 @@ export default function Sidebar({
   calculusSubTab, 
   onSelectCalculusSubTab, 
   onOpenDeployModal,
-  onOpenCasioModal
+  onOpenCasioModal,
+  onOpenAR
 }) {
   const [isOpenMobile, setIsOpenMobile] = useState(false);
 
@@ -95,12 +97,21 @@ export default function Sidebar({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={onOpenAR}
+            className="px-2 py-1.5 rounded-xl bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 text-cyan-800 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+            title="Chiếu AR 3D lên bàn học"
+          >
+            <Camera className="w-3.5 h-3.5 text-cyan-600" />
+            <span>AR</span>
+          </button>
+
           <button
             onClick={onOpenCasioModal}
-            className="px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-2 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
           >
-            <Calculator className="w-4 h-4 text-amber-600" />
+            <Calculator className="w-3.5 h-3.5 text-amber-600" />
             <span>Casio</span>
           </button>
 
@@ -150,14 +161,40 @@ export default function Sidebar({
             </div>
           </div>
 
-          {/* Casio Quick Handbook Button */}
-          <div className="px-4 pt-3">
+          {/* Quick Action Cards: Casio & AR WebXR */}
+          <div className="px-4 pt-3 space-y-2">
+            {/* AR Button */}
+            <button
+              onClick={() => {
+                if (onOpenAR) onOpenAR();
+                setIsOpenMobile(false);
+              }}
+              className="w-full p-2 rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-600 hover:to-indigo-700 text-white shadow-md shadow-cyan-500/20 flex items-center justify-between transition-all group cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white">
+                  <Camera className="w-4 h-4 animate-pulse" />
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-black tracking-tight leading-tight flex items-center gap-1.5">
+                    <span>Chiếu AR Lên Bàn Học</span>
+                    <span className="px-1.5 py-0.2 bg-cyan-300 text-slate-950 text-[9px] font-bold rounded">3D</span>
+                  </div>
+                  <div className="text-[10px] text-cyan-100 font-medium">
+                    WebXR qua Camera
+                  </div>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-white/80 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+
+            {/* Casio Button */}
             <button
               onClick={() => {
                 if (onOpenCasioModal) onOpenCasioModal();
                 setIsOpenMobile(false);
               }}
-              className="w-full p-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md shadow-amber-500/20 flex items-center justify-between transition-all group cursor-pointer"
+              className="w-full p-2 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md shadow-amber-500/20 flex items-center justify-between transition-all group cursor-pointer"
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white">

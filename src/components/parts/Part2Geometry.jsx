@@ -17,10 +17,11 @@ import {
   Maximize2,
   RefreshCw,
   Cpu,
-  Calculator
+  Calculator,
+  Camera
 } from 'lucide-react';
 
-export default function Part2Geometry({ onOpenCasioModal }) {
+export default function Part2Geometry({ onOpenCasioModal, onOpenAR }) {
   const [activeTab, setActiveTab] = useState('vectors'); // 'vectors' | 'plane-sphere' | 'exercises' | 'theory'
 
   /* -------------------------------------------------------------
@@ -392,15 +393,27 @@ export default function Part2Geometry({ onOpenCasioModal }) {
           </p>
         </div>
 
-        {onOpenCasioModal && (
-          <button
-            onClick={onOpenCasioModal}
-            className="relative z-10 self-start md:self-center px-4 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-orange-500/20 flex items-center gap-2 transition-all cursor-pointer shrink-0"
-          >
-            <Calculator className="w-4 h-4 text-white" />
-            <span>Mẹo Casio Chương V</span>
-          </button>
-        )}
+        <div className="relative z-10 flex flex-wrap items-center gap-2 shrink-0">
+          {onOpenAR && (
+            <button
+              onClick={() => onOpenAR('sphere_plane_cut')}
+              className="px-4 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white shadow-md shadow-cyan-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Camera className="w-4 h-4 text-white animate-pulse" />
+              <span>Chiếu AR Lên Bàn</span>
+            </button>
+          )}
+
+          {onOpenCasioModal && (
+            <button
+              onClick={onOpenCasioModal}
+              className="px-4 py-2.5 rounded-2xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-orange-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Calculator className="w-4 h-4 text-white" />
+              <span>Mẹo Casio</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Navigation Sub-Tabs */}
