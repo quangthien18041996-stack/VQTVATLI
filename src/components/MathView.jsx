@@ -40,16 +40,19 @@ export default function MathView({ math = '', block = false, className = '' }) {
       };
     }
 
-    // 2. Safety check: If it has Vietnamese characters and NO $ delimiters, do NOT feed into KaTeX directly!
-    const hasVietnamese = /[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/i.test(content);
-    if (hasVietnamese) {
+    // 2. Check if it's plain Vietnamese prose without LaTeX commands
+    const hasLatexCommands = /\\(lim|int|frac|sqrt|pm|cdot|le|ge|neq|implies|quad|alpha|beta|gamma|delta|pi|text|cos|sin|tan|to|infty|left|right|mathbb)/.test(content);
+    const stripped = content.replace(/\\text\{[^}]*\}/g, '');
+    const hasRawVietnamese = /[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/i.test(stripped);
+
+    if (hasRawVietnamese && !hasLatexCommands) {
       return {
         type: 'rawText',
         value: content
       };
     }
 
-    // 3. Pure LaTeX formula (e.g. \int f(x)dx, 2\cos 2x)
+    // 3. Render via KaTeX safely
     try {
       const html = katex.renderToString(content, {
         displayMode: block,

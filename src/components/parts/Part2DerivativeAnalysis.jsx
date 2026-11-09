@@ -640,9 +640,13 @@ export default function Part2DerivativeAnalysis() {
                 </span>
                 <h4 className="font-bold text-slate-800 text-sm">Tiệm Cận Ngang</h4>
               </div>
-              <div className="bg-sky-50/70 p-3 rounded-xl border border-sky-100 text-xs space-y-1">
+              <div className="bg-sky-50/70 p-3 rounded-xl border border-sky-100 text-xs space-y-1.5">
                 <span className="text-[11px] text-slate-500 font-semibold block">Định nghĩa SGK:</span>
-                <MathView math="\lim_{x \to +\infty} f(x) = y_0 \text{ hoặc } \lim_{x \to -\infty} f(x) = y_0" block className="text-sky-800 font-semibold" />
+                <div className="flex flex-wrap items-center justify-center gap-1.5 py-1 text-sky-800 font-semibold">
+                  <MathView math="\lim_{x \to +\infty} f(x) = y_0" />
+                  <span className="text-xs text-slate-500 font-normal">hoặc</span>
+                  <MathView math="\lim_{x \to -\infty} f(x) = y_0" />
+                </div>
                 <span className="text-[11px] text-slate-600 block text-center">
                   Đường thẳng <MathView math="y = y_0" /> là tiệm cận ngang.
                 </span>
@@ -660,9 +664,13 @@ export default function Part2DerivativeAnalysis() {
                 </span>
                 <h4 className="font-bold text-slate-800 text-sm">Tiệm Cận Đứng</h4>
               </div>
-              <div className="bg-red-50/70 p-3 rounded-xl border border-red-100 text-xs space-y-1">
+              <div className="bg-red-50/70 p-3 rounded-xl border border-red-100 text-xs space-y-1.5">
                 <span className="text-[11px] text-slate-500 font-semibold block">Định nghĩa SGK:</span>
-                <MathView math="\lim_{x \to x_0^+} f(x) = \pm\infty \text{ hoặc } \lim_{x \to x_0^-} f(x) = \pm\infty" block className="text-red-700 font-semibold" />
+                <div className="flex flex-wrap items-center justify-center gap-1.5 py-1 text-red-700 font-semibold">
+                  <MathView math="\lim_{x \to x_0^+} f(x) = \pm\infty" />
+                  <span className="text-xs text-slate-500 font-normal">hoặc</span>
+                  <MathView math="\lim_{x \to x_0^-} f(x) = \pm\infty" />
+                </div>
                 <span className="text-[11px] text-slate-600 block text-center">
                   Đường thẳng <MathView math="x = x_0" /> là tiệm cận đứng.
                 </span>
@@ -816,7 +824,7 @@ export default function Part2DerivativeAnalysis() {
                   <p>Hàm số lượng khán giả: <MathView math="N(p) = 27 + (100 - p) \cdot 0.3 = 57 - 0.3p" className="text-emerald-800 font-semibold" /></p>
                   <p>Doanh thu: <MathView math="R(p) = p \cdot N(p) = -0.3p^2 + 57p" className="text-emerald-800 font-semibold" /></p>
                   <p className="text-emerald-700 font-bold">
-                    Giải <MathView math="R'(p) = -0.6p + 57 = 0 \implies p = 95\text{ nghìn đồng}" />
+                    Giải <MathView math="R'(p) = -0.6p + 57 = 0 \implies p = 95" /> (nghìn đồng)
                   </p>
                 </div>
               </div>
