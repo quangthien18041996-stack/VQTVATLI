@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import MathView from '../MathView';
-import { RotateCw, Play, Pause, RefreshCw, Layers, Eye } from 'lucide-react';
+import { RotateCw, Play, Pause, Layers, Eye, Tag, Disc, Sliders } from 'lucide-react';
 
 const PRESETS = [
   {
@@ -54,14 +54,69 @@ const PRESETS = [
   }
 ];
 
+// Helper to create crisp 3D text billboards
+function createAnnotationSprite(text, options = {}) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 320;
+  canvas.height = 90;
+  const ctx = canvas.getContext('2d');
+
+  const bg = options.bg || 'rgba(15, 23, 42, 0.90)';
+  const border = options.border || '#38bdf8';
+  const textColor = options.textColor || '#ffffff';
+
+  ctx.fillStyle = bg;
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 4;
+  if (ctx.roundRect) {
+    ctx.roundRect(8, 8, 304, 74, 14);
+  } else {
+    ctx.rect(8, 8, 304, 74);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.font = options.font || 'bold 26px Inter, sans-serif';
+  ctx.fillStyle = textColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 160, 45);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+  const material = new THREE.SpriteMaterial({ 
+    map: texture, 
+    transparent: true,
+    depthTest: false 
+  });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(options.scaleX || 3.0, options.scaleY || 0.85, 1);
+  return sprite;
+}
+
 export default function SolidOfRevolution3D() {
   const containerRef = useRef(null);
   const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
   const [boundA, setBoundA] = useState(PRESETS[0].defaultA);
   const [boundB, setBoundB] = useState(PRESETS[0].defaultB);
-  const [sweepAngle, setSweepAngle] = useState(360); // degrees
+  const [sweepAngle, setSweepAngle] = useState(360);
   const [isWireframe, setIsWireframe] = useState(false);
   const [autoRotate, setAutoRotate] = useState(true);
+
+  // New Educational States
+  const [showLabels, setShowLabels] = useState(true);
+  const [showSlice, setShowSlice] = useState(true);
+  const [sliceX, setSliceX] = useState(7.5);
+
+  // Keep sliceX inside [boundA, boundB]
+  useEffect(() => {
+    if (sliceX < boundA) setSliceX(boundA);
+    else if (sliceX > boundB) setSliceX(boundB);
+  }, [boundA, boundB, sliceX]);
+
+  // Current slice radius and cross-section area
+  const sliceRadius = Math.max(0.001, selectedPreset.fn(sliceX));
+  const sliceArea = Math.PI * sliceRadius * sliceRadius;
 
   // Numerical approximation of Volume = pi * integral(f(x)^2, a, b)
   const volume = React.useMemo(() => {
@@ -78,7 +133,6 @@ export default function SolidOfRevolution3D() {
     return (fullVol * (sweepAngle / 360)).toFixed(2);
   }, [selectedPreset, boundA, boundB, sweepAngle]);
 
-  // Numerical approximation of Area = integral(f(x), a, b)
   const area = React.useMemo(() => {
     const steps = 200;
     const dx = (boundB - boundA) / steps;
@@ -95,15 +149,15 @@ export default function SolidOfRevolution3D() {
     if (!containerRef.current) return;
     const container = containerRef.current;
     const width = container.clientWidth;
-    const height = 440;
+    const height = 480;
 
     // 1. Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0c192c); // Deep CAD slate blue
+    scene.background = new THREE.Color(0x0c192c);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(16, 12, 18);
-    camera.lookAt(6, 0, 0);
+    camera.position.set(16, 13, 20);
+    camera.lookAt(7, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
@@ -112,7 +166,7 @@ export default function SolidOfRevolution3D() {
     container.appendChild(renderer.domElement);
 
     // 2. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambientLight);
 
     const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.8);
@@ -123,21 +177,28 @@ export default function SolidOfRevolution3D() {
     dirLight2.position.set(-20, -10, -20);
     scene.add(dirLight2);
 
-    // 3. Grid & Coordinate Axes
-    const gridHelper = new THREE.GridHelper(30, 30, 0x1e3a5f, 0x172554);
-    gridHelper.position.y = -4;
+    // 3. Coordinate Grid & Axes
+    const gridHelper = new THREE.GridHelper(32, 32, 0x1e3a5f, 0x132338);
+    gridHelper.position.y = -5;
     scene.add(gridHelper);
 
-    // X Axis line (axis of revolution)
-    const axisGroup = new THREE.Group();
-    const axisMat = new THREE.LineBasicMaterial({ color: 0xf43f5e, linewidth: 2 });
-    const axisGeom = new THREE.BufferGeometry().setFromPoints([
+    // X Axis line (Trục quay Ox)
+    const axisMatX = new THREE.LineBasicMaterial({ color: 0xf43f5e, linewidth: 2.5 });
+    const axisGeomX = new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(-4, 0, 0),
-      new THREE.Vector3(25, 0, 0)
+      new THREE.Vector3(26, 0, 0)
     ]);
-    const axisLine = new THREE.Line(axisGeom, axisMat);
-    axisGroup.add(axisLine);
-    scene.add(axisGroup);
+    const axisLineX = new THREE.Line(axisGeomX, axisMatX);
+    scene.add(axisLineX);
+
+    // Y Axis line (Trục tung Oy)
+    const axisMatY = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 2 });
+    const axisGeomY = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, -4, 0),
+      new THREE.Vector3(0, 12, 0)
+    ]);
+    const axisLineY = new THREE.Line(axisGeomY, axisMatY);
+    scene.add(axisLineY);
 
     // 4. Generate Solid of Revolution Mesh
     const xSteps = 45;
@@ -183,36 +244,195 @@ export default function SolidOfRevolution3D() {
     const material = new THREE.MeshPhysicalMaterial({
       color: 0x0284c7,
       emissive: 0x0369a1,
-      emissiveIntensity: 0.2,
+      emissiveIntensity: 0.18,
       metalness: 0.15,
       roughness: 0.25,
       clearcoat: 0.8,
       wireframe: isWireframe,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.88,
+      opacity: 0.82,
     });
 
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    // Profile curve
+    // Profile Curve: y = f(x)
     const curvePoints = [];
+    let maxY = 0;
+    let maxYX = boundA;
     for (let i = 0; i <= 60; i++) {
       const x = xMin + (i / 60) * (xMax - xMin);
       const y = selectedPreset.fn(x);
+      if (y > maxY) {
+        maxY = y;
+        maxYX = x;
+      }
       curvePoints.push(new THREE.Vector3(x, y, 0));
     }
     const curveGeom = new THREE.BufferGeometry().setFromPoints(curvePoints);
-    const curveMat = new THREE.LineBasicMaterial({ color: 0xfbbf24, linewidth: 3 });
+    const curveMat = new THREE.LineBasicMaterial({ color: 0xfbbf24, linewidth: 3.5 });
     const profileCurve = new THREE.Line(curveGeom, curveMat);
     scene.add(profileCurve);
 
-    // Mouse Drag Interaction
+    // Boundary Rings at x = a and x = b
+    const createRing = (xVal, colorHex) => {
+      const r = Math.max(0.001, selectedPreset.fn(xVal));
+      const ringGeom = new THREE.BufferGeometry();
+      const pts = [];
+      const segs = 48;
+      for (let s = 0; s <= segs; s++) {
+        const a = (s / segs) * maxPhi;
+        pts.push(new THREE.Vector3(xVal, r * Math.cos(a), r * Math.sin(a)));
+      }
+      ringGeom.setFromPoints(pts);
+      const ringMat = new THREE.LineBasicMaterial({ color: colorHex, linewidth: 2 });
+      return new THREE.Line(ringGeom, ringMat);
+    };
+
+    scene.add(createRing(boundA, 0x38bdf8));
+    scene.add(createRing(boundB, 0x38bdf8));
+
+    // 5. Dynamic Cross-Section Disc (Thiết diện S(x) = π·r²)
+    if (showSlice && sliceX >= boundA && sliceX <= boundB) {
+      const r = Math.max(0.001, selectedPreset.fn(sliceX));
+      
+      // Disc mesh (rotated so it is perpendicular to X-axis)
+      const discGeom = new THREE.CircleGeometry(r, 48, 0, maxPhi);
+      const discMat = new THREE.MeshStandardMaterial({
+        color: 0x10b981,
+        emissive: 0x059669,
+        emissiveIntensity: 0.35,
+        transparent: true,
+        opacity: 0.65,
+        side: THREE.DoubleSide
+      });
+      const discMesh = new THREE.Mesh(discGeom, discMat);
+      discMesh.position.set(sliceX, 0, 0);
+      discMesh.rotation.y = Math.PI / 2;
+      scene.add(discMesh);
+
+      // Disc outer rim
+      const rimGeom = new THREE.BufferGeometry();
+      const rimPts = [];
+      for (let s = 0; s <= 48; s++) {
+        const phi = (s / 48) * maxPhi;
+        rimPts.push(new THREE.Vector3(sliceX, r * Math.cos(phi), r * Math.sin(phi)));
+      }
+      rimGeom.setFromPoints(rimPts);
+      const rimMat = new THREE.LineBasicMaterial({ color: 0x34d399, linewidth: 2.5 });
+      scene.add(new THREE.Line(rimGeom, rimMat));
+
+      // Radius line: r = f(x)
+      const radiusGeom = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(sliceX, 0, 0),
+        new THREE.Vector3(sliceX, r, 0)
+      ]);
+      const radiusMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, linewidth: 3 });
+      scene.add(new THREE.Line(radiusGeom, radiusMat));
+
+      // Point at center and point on rim
+      const centerDotGeom = new THREE.SphereGeometry(0.18, 16, 16);
+      const dotMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
+      const centerDot = new THREE.Mesh(centerDotGeom, dotMat);
+      centerDot.position.set(sliceX, 0, 0);
+      scene.add(centerDot);
+
+      const rimDot = new THREE.Mesh(centerDotGeom, dotMat);
+      rimDot.position.set(sliceX, r, 0);
+      scene.add(rimDot);
+    }
+
+    // 6. Educational 3D Annotation Labels & Symbols
+    if (showLabels) {
+      // Label: Trục quay Ox
+      const labelOx = createAnnotationSprite('Trục quay Ox ➜', {
+        bg: 'rgba(239, 68, 68, 0.92)',
+        border: '#f87171',
+        scaleX: 3.4,
+        scaleY: 0.95
+      });
+      labelOx.position.set(23, -0.8, 0);
+      scene.add(labelOx);
+
+      // Label: Trục Oy
+      const labelOy = createAnnotationSprite('Trục Oy ⬆', {
+        bg: 'rgba(16, 185, 129, 0.92)',
+        border: '#34d399',
+        scaleX: 2.5,
+        scaleY: 0.95
+      });
+      labelOy.position.set(0, 11, 0);
+      scene.add(labelOy);
+
+      // Label: Gốc O(0,0)
+      const labelO = createAnnotationSprite('O(0,0)', {
+        bg: 'rgba(30, 41, 59, 0.9)',
+        border: '#94a3b8',
+        scaleX: 2.0,
+        scaleY: 0.8
+      });
+      labelO.position.set(-0.8, -0.8, 0);
+      scene.add(labelO);
+
+      // Label: Cận a
+      const labelA = createAnnotationSprite(`Cận x = a (${boundA})`, {
+        bg: 'rgba(2, 132, 199, 0.92)',
+        border: '#38bdf8',
+        scaleX: 3.0,
+        scaleY: 0.85
+      });
+      labelA.position.set(boundA, -1.6, 0);
+      scene.add(labelA);
+
+      // Label: Cận b
+      const labelB = createAnnotationSprite(`Cận x = b (${boundB})`, {
+        bg: 'rgba(2, 132, 199, 0.92)',
+        border: '#38bdf8',
+        scaleX: 3.0,
+        scaleY: 0.85
+      });
+      labelB.position.set(boundB, -1.6, 0);
+      scene.add(labelB);
+
+      // Label: Đường sinh y = f(x)
+      const labelCurve = createAnnotationSprite('Đường sinh y = f(x)', {
+        bg: 'rgba(217, 119, 6, 0.92)',
+        border: '#fbbf24',
+        textColor: '#ffffff',
+        scaleX: 3.6,
+        scaleY: 0.95
+      });
+      labelCurve.position.set(maxYX, maxY + 1.2, 0);
+      scene.add(labelCurve);
+
+      // Label: Bán kính và Thiết diện lát cắt
+      if (showSlice) {
+        const labelRadius = createAnnotationSprite(`r = f(x) = ${sliceRadius.toFixed(2)}`, {
+          bg: 'rgba(180, 83, 9, 0.92)',
+          border: '#f59e0b',
+          scaleX: 3.2,
+          scaleY: 0.85
+        });
+        labelRadius.position.set(sliceX, sliceRadius / 2, 0);
+        scene.add(labelRadius);
+
+        const labelSlice = createAnnotationSprite(`Thiết diện S(x) = π·r² = ${sliceArea.toFixed(1)}`, {
+          bg: 'rgba(6, 95, 70, 0.92)',
+          border: '#10b981',
+          scaleX: 4.2,
+          scaleY: 0.95
+        });
+        labelSlice.position.set(sliceX, sliceRadius + 1.2, sliceRadius * 0.4);
+        scene.add(labelSlice);
+      }
+    }
+
+    // 7. Mouse Orbit
     let isDragging = false;
     let prevMouse = { x: 0, y: 0 };
-    let rotX = 0.3;
-    let rotY = -0.5;
+    let rotX = 0.35;
+    let rotY = -0.55;
 
     const onMouseDown = (e) => {
       isDragging = true;
@@ -247,13 +467,13 @@ export default function SolidOfRevolution3D() {
     const animate = () => {
       animId = requestAnimationFrame(animate);
       if (autoRotate && !isDragging) {
-        rotY += 0.004;
+        rotY += 0.0035;
       }
-      const radius = 26;
-      camera.position.x = 6 + radius * Math.cos(rotX) * Math.sin(rotY);
+      const radius = 28;
+      camera.position.x = 7 + radius * Math.cos(rotX) * Math.sin(rotY);
       camera.position.y = radius * Math.sin(rotX);
       camera.position.z = radius * Math.cos(rotX) * Math.cos(rotY);
-      camera.lookAt(6, 0, 0);
+      camera.lookAt(7, 0, 0);
 
       renderer.render(scene, camera);
     };
@@ -269,12 +489,13 @@ export default function SolidOfRevolution3D() {
       material.dispose();
       renderer.dispose();
     };
-  }, [selectedPreset, boundA, boundB, sweepAngle, isWireframe, autoRotate]);
+  }, [selectedPreset, boundA, boundB, sweepAngle, isWireframe, autoRotate, showLabels, showSlice, sliceX]);
 
   const handleSelectPreset = (p) => {
     setSelectedPreset(p);
     setBoundA(p.defaultA);
     setBoundB(p.defaultB);
+    setSliceX((p.defaultA + p.defaultB) / 2);
   };
 
   return (
@@ -285,17 +506,43 @@ export default function SolidOfRevolution3D() {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
             <h3 className="font-bold text-slate-800 text-base md:text-lg">
-              Phòng Thí Nghiệm 3D: Khối Tròn Xoay & Tích Phân Thực Nghiệm
+              Phòng Thí Nghiệm 3D: Khối Tròn Xoay Kèm Ký Hiệu & Thiết Diện Động
             </h3>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Mô phỏng động quá trình quay hình phẳng quanh trục Ox theo công thức{' '}
-            <MathView math="V = \pi \int_a^b [f(x)]^2 dx" className="text-blue-700 font-mono font-semibold" />
+            Trực quan hóa công thức SGK:{' '}
+            <MathView math="V = \pi \int_a^b [f(x)]^2 dx = \int_a^b S(x) dx" className="text-blue-700 font-mono font-semibold" />
           </p>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center gap-2">
+        {/* Feature Toggles */}
+        <div className="flex items-center flex-wrap gap-2">
+          <button
+            onClick={() => setShowLabels(!showLabels)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              showLabels 
+                ? 'bg-amber-500 text-white shadow-xs' 
+                : 'bg-white border border-sky-200 text-slate-600 hover:bg-sky-50'
+            }`}
+            title="Bật/Tắt ký hiệu tọa độ, cận a, b, đường sinh và bán kính"
+          >
+            <Tag className="w-3.5 h-3.5" />
+            {showLabels ? 'Ký Hiệu: Đang Bật' : 'Ký Hiệu: Đã Tắt'}
+          </button>
+
+          <button
+            onClick={() => setShowSlice(!showSlice)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              showSlice 
+                ? 'bg-emerald-600 text-white shadow-xs' 
+                : 'bg-white border border-sky-200 text-slate-600 hover:bg-sky-50'
+            }`}
+            title="Bật/Tắt lát cắt thiết diện tròn S(x)"
+          >
+            <Disc className="w-3.5 h-3.5" />
+            {showSlice ? 'Lát Cắt S(x): Bật' : 'Lát Cắt S(x): Tắt'}
+          </button>
+
           <button
             onClick={() => setIsWireframe(!isWireframe)}
             className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
@@ -305,6 +552,7 @@ export default function SolidOfRevolution3D() {
             <Layers className="w-3.5 h-3.5" />
             {isWireframe ? 'Lưới Wireframe' : 'Mặt đặc Solid'}
           </button>
+
           <button
             onClick={() => setAutoRotate(!autoRotate)}
             className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
@@ -338,15 +586,26 @@ export default function SolidOfRevolution3D() {
       <div className="grid grid-cols-1 lg:grid-cols-4">
         {/* 3D Canvas */}
         <div className="lg:col-span-3 relative cursor-grab active:cursor-grabbing bg-[#0c192c]">
-          <div ref={containerRef} className="w-full h-[440px]" />
-          <div className="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-700 text-[11px] text-slate-300 flex items-center gap-2">
-            <Eye className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Kéo chuột để xoay 360° • Đường viền màu vàng là đường sinh <MathView math="y = f(x)" /></span>
+          <div ref={containerRef} className="w-full h-[480px]" />
+          
+          {/* Legend badge on bottom left */}
+          <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-700 text-[11px] text-slate-300 flex flex-wrap items-center gap-3 shadow-lg">
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Trục quay Ox
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Thiết diện tròn S(x)
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Bán kính r = f(x)
+            </span>
+            <span className="text-slate-500">|</span>
+            <span className="text-cyan-300">Kéo chuột để xoay 360°</span>
           </div>
         </div>
 
         {/* Sidebar Controls & Calculation Results */}
-        <div className="p-4 border-t lg:border-t-0 lg:border-l border-sky-100 bg-sky-50/30 flex flex-col justify-between">
+        <div className="p-4 border-t lg:border-t-0 lg:border-l border-sky-100 bg-sky-50/30 flex flex-col justify-between space-y-4">
           <div className="space-y-4">
             <div>
               <span className="text-xs font-semibold text-slate-600 block mb-1">Hàm số đường sinh:</span>
@@ -354,6 +613,34 @@ export default function SolidOfRevolution3D() {
                 <MathView math={selectedPreset.fnStr} block />
               </div>
             </div>
+
+            {/* Slider: Vị trí lát cắt kiểm tra x */}
+            {showSlice && (
+              <div className="p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2">
+                <div className="flex justify-between text-xs items-center">
+                  <span className="text-emerald-900 font-bold flex items-center gap-1">
+                    <Disc className="w-3.5 h-3.5 text-emerald-600" />
+                    Vị trí lát cắt x:
+                  </span>
+                  <span className="text-emerald-800 font-black font-mono bg-white px-2 py-0.5 rounded border border-emerald-200">
+                    x = {sliceX.toFixed(1)}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={boundA}
+                  max={boundB}
+                  step="0.2"
+                  value={sliceX}
+                  onChange={(e) => setSliceX(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-emerald-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+                />
+                <div className="text-[11px] text-emerald-800 flex justify-between pt-1">
+                  <span>Bán kính: <strong>{sliceRadius.toFixed(2)}</strong></span>
+                  <span>S(x): <strong>{sliceArea.toFixed(1)}</strong> đvdt</span>
+                </div>
+              </div>
+            )}
 
             {/* Cận a slider */}
             <div>
@@ -404,32 +691,21 @@ export default function SolidOfRevolution3D() {
                 onChange={(e) => setSweepAngle(parseInt(e.target.value))}
                 className="w-full h-1.5 bg-sky-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
-              <div className="flex justify-between text-[10px] text-slate-400 mt-1">
-                <span>Cắt lát 30°</span>
-                <span>Nửa khối 180°</span>
-                <span>Toàn phần 360°</span>
-              </div>
             </div>
           </div>
 
           {/* Results Badge */}
-          <div className="mt-4 pt-4 border-t border-sky-200 space-y-2">
+          <div className="pt-3 border-t border-sky-200 space-y-2">
             <div className="bg-gradient-to-br from-blue-50 to-sky-100 p-3.5 rounded-xl border border-blue-200/80 shadow-xs">
               <span className="text-[11px] text-blue-700 uppercase tracking-wider font-bold block">
-                Thể tích khối 3D (V):
+                Tổng Thể Tích Khối 3D (V):
               </span>
               <div className="text-2xl font-black text-slate-900 mt-0.5">
                 {volume} <span className="text-xs text-slate-500 font-normal">{selectedPreset.unit}³</span>
               </div>
               <p className="text-[10px] text-slate-500 mt-1">
-                Tính bằng tích phân thực nghiệm xấp xỉ liên tục.
+                Tích phân toàn phần của các thiết diện <MathView math="S(x)dx" /> từ a đến b.
               </p>
-            </div>
-
-            <div className="bg-white p-2.5 rounded-xl border border-sky-200 shadow-xs">
-              <span className="text-[11px] text-slate-600 block">
-                Diện tích hình phẳng 2D: <strong className="text-blue-700 font-mono">{area}</strong> đvdt
-              </span>
             </div>
           </div>
         </div>
