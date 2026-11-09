@@ -42,18 +42,18 @@ export default function Sidebar({
     { 
       id: 'part2', 
       num: '2', 
-      title: 'Tọa Độ Không Gian Oxyz', 
-      chapter: 'Chương V (Tập 2)',
-      icon: Compass,
-      accent: 'from-teal-600 to-emerald-500'
+      title: 'Khảo Sát & Vẽ Đồ Thị Hàm Số', 
+      chapter: 'Chương I (Tập 1)',
+      icon: TrendingUp,
+      accent: 'from-amber-600 to-orange-500'
     },
     { 
       id: 'part3', 
       num: '3', 
-      title: 'Đạo Hàm & Tối Ưu Hóa', 
-      chapter: 'Chương I (Tập 1)',
-      icon: TrendingUp,
-      accent: 'from-amber-600 to-orange-500'
+      title: 'Tọa Độ Không Gian Oxyz', 
+      chapter: 'Chương V (Tập 2)',
+      icon: Compass,
+      accent: 'from-teal-600 to-emerald-500'
     },
     { 
       id: 'part4', 

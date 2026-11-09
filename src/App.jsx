@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import HeroBanner from './components/HeroBanner';
 import Part1Calculus from './components/parts/Part1Calculus';
+import Part2DerivativeAnalysis from './components/parts/Part2DerivativeAnalysis';
 import Part2Geometry from './components/parts/Part2Geometry';
-import Part3Derivative from './components/parts/Part3Derivative';
 import Part4Probability from './components/parts/Part4Probability';
 import Footer from './components/Footer';
 import DeploymentGuideModal from './components/DeploymentGuideModal';
@@ -55,8 +55,8 @@ export default function App() {
                 onSelectSubTab={setPart1SubTab} 
               />
             )}
-            {activeModule === 'part2' && <Part2Geometry />}
-            {activeModule === 'part3' && <Part3Derivative />}
+            {activeModule === 'part2' && <Part2DerivativeAnalysis />}
+            {activeModule === 'part3' && <Part2Geometry />}
             {activeModule === 'part4' && <Part4Probability />}
           </section>
 
