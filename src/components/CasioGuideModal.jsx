@@ -535,7 +535,7 @@ export default function CasioGuideModal({ isOpen, onClose }) {
                       {/* Detailed Steps */}
                       <ol className="text-xs text-slate-700 space-y-1.5 list-decimal pl-4 leading-relaxed font-sans">
                         {item.fx580.steps.map((st, sIdx) => (
-                          <li key={sIdx}>{st}</li>
+                          <li key={sIdx}><MathView math={st} /></li>
                         ))}
                       </ol>
                     </div>
@@ -571,7 +571,7 @@ export default function CasioGuideModal({ isOpen, onClose }) {
                       {/* Detailed Steps */}
                       <ol className="text-xs text-slate-700 space-y-1.5 list-decimal pl-4 leading-relaxed font-sans">
                         {item.fx880.steps.map((st, sIdx) => (
-                          <li key={sIdx}>{st}</li>
+                          <li key={sIdx}><MathView math={st} /></li>
                         ))}
                       </ol>
                     </div>
@@ -590,12 +590,13 @@ export default function CasioGuideModal({ isOpen, onClose }) {
                   </p>
 
                   <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed font-sans">
-                    <strong>Bấm máy & Đọc kết quả:</strong> {item.example.calc580}
+                    <strong className="text-slate-900">Bấm máy & Đọc kết quả:</strong>{' '}
+                    <MathView math={item.example.calc580} />
                   </div>
 
-                  <div className="text-[11px] text-amber-800 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200 flex items-start gap-1.5">
+                  <div className="text-[11px] text-amber-900 bg-amber-50/90 p-2.5 rounded-xl border border-amber-200 flex items-start gap-1.5 leading-relaxed">
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                    <span><strong>Mẹo vàng tránh bẫy:</strong> {item.example.tip}</span>
+                    <span><strong className="text-amber-950">Mẹo vàng tránh bẫy:</strong> <MathView math={item.example.tip} /></span>
                   </div>
                 </div>
               </div>
