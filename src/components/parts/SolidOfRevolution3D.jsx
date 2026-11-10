@@ -1,12 +1,33 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import MathView from '../MathView';
-import { RotateCw, Play, Pause, Layers, Tag, Disc, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { 
+  RotateCw, 
+  Play, 
+  Pause, 
+  Layers, 
+  Tag, 
+  Disc, 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCcw, 
+  Edit3, 
+  PenTool, 
+  Check, 
+  AlertCircle, 
+  Sparkles,
+  Sliders,
+  RefreshCw,
+  Info
+} from 'lucide-react';
 
+/* ============================================================
+   DANH SÁCH HÀM MẪU CÓ SẴN (PRESETS)
+   ============================================================ */
 const PRESETS = [
   {
     id: 'pottery',
-    name: 'Bình gốm sứ Bát Tràng',
+    name: 'Bình gốm Bát Tràng',
     fnStr: 'f(x) = \\frac{1}{175}x^2 + \\frac{3}{35}x + 2',
     fn: (x) => (1 / 175) * x * x + (3 / 35) * x + 2,
     defaultA: 0,
@@ -19,7 +40,7 @@ const PRESETS = [
   },
   {
     id: 'sqrt',
-    name: 'Khối tròn xoay Paraboloid (y = √x)',
+    name: 'Paraboloid (y = √x)',
     fnStr: 'f(x) = \\sqrt{x}',
     fn: (x) => Math.sqrt(Math.max(0, x)),
     defaultA: 0,
@@ -32,7 +53,7 @@ const PRESETS = [
   },
   {
     id: 'cone',
-    name: 'Khối nón cụt / Hình nón (y = 0.5x)',
+    name: 'Hình nón (y = 0.5x)',
     fnStr: 'f(x) = 0.5x',
     fn: (x) => 0.5 * x,
     defaultA: 0,
@@ -58,7 +79,93 @@ const PRESETS = [
   }
 ];
 
-// Helper to create crisp, auto-sized 3D text billboards that NEVER clip text
+/* Gợi ý hàm số tùy chọn thường gặp */
+const MATH_SUGGESTIONS = [
+  { label: 'Cầu Parabol', expr: 'sqrt(4 - x^2)', a: -2, b: 2, desc: 'Nửa đường tròn quay quanh Ox tạo thành mặt cầu bán kính R=2' },
+  { label: 'Cốc Thủy Tinh', expr: '1.5 + 0.1*x^2', a: 0, b: 4, desc: 'Thân cốc đáy hẹp loe dần lên miệng' },
+  { label: 'Thắt Eo Đồng Hồ Cát', expr: '2 - sin(x)', a: 0, b: 3.14, desc: 'Dạng thon ở giữa, mở rộng hai đầu' },
+  { label: 'Tháp Eiffel', expr: '3 * exp(-0.3*x)', a: 0, b: 6, desc: 'Đường cong hàm mũ thuôn nhỏ dần lên đỉnh' }
+];
+
+/* Các điểm nút mẫu cho chế độ "Nặn gốm bằng chuột" */
+const DEFAULT_SPLINE_POINTS = [
+  { x: 0, y: 1.6 },
+  { x: 2.5, y: 2.8 },
+  { x: 5.5, y: 1.4 },
+  { x: 8.5, y: 2.9 },
+  { x: 12, y: 2.2 }
+];
+
+// Parser an toàn cho chuỗi hàm số
+function parseMathExpression(str) {
+  try {
+    let clean = str.trim()
+      .replace(/f\s*\(\s*x\s*\)\s*=/gi, '')
+      .replace(/y\s*=/gi, '')
+      .replace(/\s+/g, '')
+      .replace(/\^/g, '**')
+      .replace(/sin\(/gi, 'Math.sin(')
+      .replace(/cos\(/gi, 'Math.cos(')
+      .replace(/tan\(/gi, 'Math.tan(')
+      .replace(/sqrt\(/gi, 'Math.sqrt(')
+      .replace(/exp\(/gi, 'Math.exp(')
+      .replace(/ln\(/gi, 'Math.log(')
+      .replace(/log\(/gi, 'Math.log10(')
+      .replace(/abs\(/gi, 'Math.abs(')
+      .replace(/pi/gi, 'Math.PI')
+      .replace(/e(?![a-zA-Z])/g, 'Math.E')
+      .replace(/(\d+)([a-zA-Z\(])/g, '$1*$2')
+      .replace(/\)([\d\(])/g, ')*$1');
+
+    const fn = new Function('x', `
+      try {
+        const val = ${clean};
+        if (typeof val !== 'number' || isNaN(val) || !isFinite(val)) return 0;
+        return Math.max(0, val);
+      } catch(e) {
+        return 0;
+      }
+    `);
+
+    // Test run
+    const testVal = fn(1);
+    if (isNaN(testVal)) throw new Error('Biểu thức không hợp lệ');
+
+    return { fn, error: null };
+  } catch (err) {
+    return { fn: null, error: err.message || 'Hàm số không hợp lệ' };
+  }
+}
+
+// Nội suy Catmull-Rom Spline mượt mà qua các điểm nút
+function interpolateSpline(points, x) {
+  if (!points || points.length === 0) return 1;
+  if (x <= points[0].x) return Math.max(0.1, points[0].y);
+  if (x >= points[points.length - 1].x) return Math.max(0.1, points[points.length - 1].y);
+
+  let i = 0;
+  while (i < points.length - 1 && points[i + 1].x < x) i++;
+
+  const p0 = points[Math.max(0, i - 1)];
+  const p1 = points[i];
+  const p2 = points[i + 1];
+  const p3 = points[Math.min(points.length - 1, i + 2)];
+
+  const t = (x - p1.x) / (p2.x - p1.x);
+  const t2 = t * t;
+  const t3 = t2 * t;
+
+  const y = 0.5 * (
+    (2 * p1.y) +
+    (-p0.y + p2.y) * t +
+    (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+    (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3
+  );
+
+  return Math.max(0.05, y);
+}
+
+// Helper to create crisp, auto-sized 3D text billboards
 function createAnnotationSprite(text, options = {}) {
   const canvas = document.createElement('canvas');
   const tempCtx = canvas.getContext('2d');
@@ -67,7 +174,6 @@ function createAnnotationSprite(text, options = {}) {
   const font = `bold ${fontSize}px Inter, -apple-system, sans-serif`;
   tempCtx.font = font;
   
-  // Accurately measure text width to prevent ANY truncation or clipping
   const metrics = tempCtx.measureText(text);
   const textWidth = Math.ceil(metrics.width);
   const paddingX = 40;
@@ -81,7 +187,6 @@ function createAnnotationSprite(text, options = {}) {
   const border = options.border || '#38bdf8';
   const textColor = options.textColor || '#ffffff';
 
-  // Draw rounded card background
   ctx.fillStyle = bg;
   ctx.strokeStyle = border;
   ctx.lineWidth = 4;
@@ -97,7 +202,6 @@ function createAnnotationSprite(text, options = {}) {
   ctx.fill();
   ctx.stroke();
 
-  // Draw text
   ctx.font = font;
   ctx.fillStyle = textColor;
   ctx.textAlign = 'center';
@@ -113,7 +217,6 @@ function createAnnotationSprite(text, options = {}) {
   });
   const sprite = new THREE.Sprite(material);
   
-  // Scale sprite proportionally in 3D space
   const worldHeight = options.worldHeight || 0.85;
   const worldWidth = (canvas.width / canvas.height) * worldHeight;
   sprite.scale.set(worldWidth, worldHeight, 1);
@@ -122,12 +225,29 @@ function createAnnotationSprite(text, options = {}) {
 
 export default function SolidOfRevolution3D() {
   const containerRef = useRef(null);
+  const splineCanvasRef = useRef(null);
+
+  // Creative Mode: 'preset' | 'custom_math' | 'draw_spline'
+  const [creativeMode, setCreativeMode] = useState('preset');
+
+  // Selected Preset
   const [selectedPreset, setSelectedPreset] = useState(PRESETS[0]);
+
+  // Custom Math Formula state
+  const [customMathInput, setCustomMathInput] = useState('2 + cos(x)');
+  const [customMathError, setCustomMathError] = useState('');
+  const [customFnObj, setCustomFnObj] = useState(() => parseMathExpression('2 + cos(x)'));
+
+  // Custom Spline Draw state
+  const [splinePoints, setSplinePoints] = useState(DEFAULT_SPLINE_POINTS);
+  const [draggingPointIdx, setDraggingPointIdx] = useState(null);
+
+  // Bounds & Angles
   const [boundA, setBoundA] = useState(PRESETS[0].defaultA);
   const [boundB, setBoundB] = useState(PRESETS[0].defaultB);
   const [sweepAngle, setSweepAngle] = useState(360);
   const [isWireframe, setIsWireframe] = useState(false);
-  const [autoRotate, setAutoRotate] = useState(true); // Default false so user can inspect clearly
+  const [autoRotate, setAutoRotate] = useState(true);
 
   // Educational States
   const [showLabels, setShowLabels] = useState(true);
@@ -138,42 +258,232 @@ export default function SolidOfRevolution3D() {
   const DEFAULT_ZOOM = selectedPreset.defaultZoom || 24;
   const [zoomRadius, setZoomRadius] = useState(DEFAULT_ZOOM);
 
+  // Active Function based on creative mode
+  const activeFn = useMemo(() => {
+    if (creativeMode === 'preset') {
+      return selectedPreset.fn;
+    }
+    if (creativeMode === 'custom_math') {
+      return customFnObj.fn || selectedPreset.fn;
+    }
+    // 'draw_spline'
+    return (x) => interpolateSpline(splinePoints, x);
+  }, [creativeMode, selectedPreset, customFnObj, splinePoints]);
+
+  const activeFnStr = useMemo(() => {
+    if (creativeMode === 'preset') return selectedPreset.fnStr;
+    if (creativeMode === 'custom_math') return `f(x) = ${customMathInput}`;
+    return 'f(x) = \\text{Đường viền nặn tự do (Catmull-Rom Spline)}';
+  }, [creativeMode, selectedPreset, customMathInput]);
+
   // Keep sliceX inside [boundA, boundB]
   useEffect(() => {
     if (sliceX < boundA) setSliceX(boundA);
     else if (sliceX > boundB) setSliceX(boundB);
   }, [boundA, boundB, sliceX]);
 
-  const sliceRadius = Math.max(0.001, selectedPreset.fn(sliceX));
+  const sliceRadius = Math.max(0.001, activeFn(sliceX));
   const sliceArea = Math.PI * sliceRadius * sliceRadius;
 
   // Numerical approximation of Volume = pi * integral(f(x)^2, a, b)
-  const volume = React.useMemo(() => {
+  const volume = useMemo(() => {
     const steps = 200;
     const dx = (boundB - boundA) / steps;
-    if (dx <= 0) return 0;
+    if (dx <= 0) return '0.00';
     let sum = 0;
     for (let i = 0; i < steps; i++) {
       const x = boundA + (i + 0.5) * dx;
-      const y = selectedPreset.fn(x);
+      const y = activeFn(x);
       sum += y * y * dx;
     }
     const fullVol = Math.PI * sum;
     return (fullVol * (sweepAngle / 360)).toFixed(2);
-  }, [selectedPreset, boundA, boundB, sweepAngle]);
+  }, [activeFn, boundA, boundB, sweepAngle]);
 
-  const handleZoomIn = () => {
-    setZoomRadius((r) => Math.max(12, r - 3.5));
+  const handleZoomIn = () => setZoomRadius((r) => Math.max(12, r - 3.5));
+  const handleZoomOut = () => setZoomRadius((r) => Math.min(50, r + 3.5));
+  const handleResetZoom = () => setZoomRadius(selectedPreset.defaultZoom || 24);
+
+  // Apply Custom Math input
+  const handleApplyCustomMath = (exprToApply, optA, optB) => {
+    const expr = exprToApply !== undefined ? exprToApply : customMathInput;
+    const res = parseMathExpression(expr);
+    if (res.error) {
+      setCustomMathError(res.error);
+    } else {
+      setCustomMathError('');
+      setCustomFnObj(res);
+      setCreativeMode('custom_math');
+      if (optA !== undefined) setBoundA(optA);
+      if (optB !== undefined) setBoundB(optB);
+      else {
+        setBoundA(0);
+        setBoundB(6);
+      }
+    }
   };
 
-  const handleZoomOut = () => {
-    setZoomRadius((r) => Math.min(50, r + 3.5));
-  };
+  /* -------------------------------------------------------------
+     VẼ 2D PROFILE TRÊN CANVAS ĐỂ KÉO THẢ NẶN GỐM
+     ------------------------------------------------------------- */
+  useEffect(() => {
+    if (creativeMode !== 'draw_spline' || !splineCanvasRef.current) return;
+    const canvas = splineCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
 
-  const handleResetZoom = () => {
-    setZoomRadius(selectedPreset.defaultZoom || 24);
-  };
+    ctx.clearRect(0, 0, width, height);
 
+    const padLeft = 40;
+    const padRight = 30;
+    const padTop = 30;
+    const padBottom = 30;
+
+    const minX = 0;
+    const maxX = 12;
+    const minY = 0;
+    const maxY = 4.5;
+
+    const toPxX = (x) => padLeft + ((x - minX) / (maxX - minX)) * (width - padLeft - padRight);
+    const toPxY = (y) => height - padBottom - ((y - minY) / (maxY - minY)) * (height - padTop - padBottom);
+    const fromPxX = (px) => minX + ((px - padLeft) / (width - padLeft - padRight)) * (maxX - minX);
+    const fromPxY = (py) => minY + ((height - padBottom - py) / (height - padTop - padBottom)) * (maxY - minY);
+
+    // Grid lines
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= maxX; x += 2) {
+      ctx.beginPath();
+      ctx.moveTo(toPxX(x), padTop);
+      ctx.lineTo(toPxX(x), height - padBottom);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= maxY; y += 1) {
+      ctx.beginPath();
+      ctx.moveTo(padLeft, toPxY(y));
+      ctx.lineTo(width - padRight, toPxY(y));
+      ctx.stroke();
+    }
+
+    // Main Axes
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    // Ox
+    ctx.beginPath();
+    ctx.moveTo(padLeft - 10, toPxY(0));
+    ctx.lineTo(width - 10, toPxY(0));
+    ctx.stroke();
+    // Oy
+    ctx.beginPath();
+    ctx.moveTo(toPxX(0), height - padBottom + 10);
+    ctx.lineTo(toPxX(0), 10);
+    ctx.stroke();
+
+    ctx.fillStyle = '#475569';
+    ctx.font = 'bold 10px Inter, sans-serif';
+    ctx.fillText('x (cm)', width - 35, toPxY(0) + 18);
+    ctx.fillText('y = r(x)', toPxX(0) - 5, 20);
+
+    // Draw Smooth Spline curve
+    ctx.beginPath();
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 3;
+    const step = 0.1;
+    for (let x = minX; x <= maxX; x += step) {
+      const y = interpolateSpline(splinePoints, x);
+      const px = toPxX(x);
+      const py = toPxY(y);
+      if (x === minX) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Fill under curve
+    ctx.lineTo(toPxX(maxX), toPxY(0));
+    ctx.lineTo(toPxX(minX), toPxY(0));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(14, 165, 233, 0.15)';
+    ctx.fill();
+
+    // Draw Control Points
+    splinePoints.forEach((pt, idx) => {
+      const px = toPxX(pt.x);
+      const py = toPxY(pt.y);
+
+      // Outer glow
+      ctx.beginPath();
+      ctx.arc(px, py, 11, 0, Math.PI * 2);
+      ctx.fillStyle = draggingPointIdx === idx ? 'rgba(245, 158, 11, 0.35)' : 'rgba(2, 132, 199, 0.2)';
+      ctx.fill();
+
+      // Core point
+      ctx.beginPath();
+      ctx.arc(px, py, 6, 0, Math.PI * 2);
+      ctx.fillStyle = draggingPointIdx === idx ? '#f59e0b' : '#0284c7';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Label coordinate
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 10px Inter, sans-serif';
+      ctx.fillText(`P${idx + 1}(${pt.x.toFixed(1)}, ${pt.y.toFixed(1)})`, px - 25, py - 14);
+    });
+
+    // Mouse handlers for dragging points
+    const handleMouseDown = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      let found = null;
+      splinePoints.forEach((pt, idx) => {
+        const px = toPxX(pt.x);
+        const py = toPxY(pt.y);
+        const dist = Math.hypot(mouseX - px, mouseY - py);
+        if (dist < 18) found = idx;
+      });
+
+      if (found !== null) setDraggingPointIdx(found);
+    };
+
+    const handleMouseMove = (e) => {
+      if (draggingPointIdx === null) return;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const newY = Math.min(4.2, Math.max(0.1, fromPxY(mouseY)));
+      // Point 0 and Point 4 keep fixed X for smooth cylinder base/top
+      const newX = (draggingPointIdx === 0 || draggingPointIdx === splinePoints.length - 1)
+        ? splinePoints[draggingPointIdx].x
+        : Math.min(maxX - 0.5, Math.max(0.5, fromPxX(mouseX)));
+
+      setSplinePoints((prev) => {
+        const updated = [...prev];
+        updated[draggingPointIdx] = { x: +newX.toFixed(2), y: +newY.toFixed(2) };
+        return updated.sort((a, b) => a.x - b.x);
+      });
+    };
+
+    const handleMouseUp = () => setDraggingPointIdx(null);
+
+    canvas.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [creativeMode, splinePoints, draggingPointIdx]);
+
+  /* -------------------------------------------------------------
+     THREE.JS 3D RENDER CHÍNH
+     ------------------------------------------------------------- */
   useEffect(() => {
     if (!containerRef.current) return;
     const container = containerRef.current;
@@ -218,7 +528,7 @@ export default function SolidOfRevolution3D() {
     let peakX = boundA;
     for (let i = 0; i <= 60; i++) {
       const x = xMin + (i / 60) * shapeLength;
-      const y = Math.max(0, selectedPreset.fn(x));
+      const y = Math.max(0, activeFn(x));
       if (y > peakY) {
         peakY = y;
         peakX = x;
@@ -240,7 +550,7 @@ export default function SolidOfRevolution3D() {
     const arrowConeRadius = 0.3 * baseScale;
     const arrowConeHeight = 0.9 * baseScale;
 
-    // Floor Grid Helper (placed safely under the lowest bottom of the solid)
+    // Floor Grid Helper
     const floorY = -Math.max(peakY + 1.2, 3.2);
     const gridSize = Math.max(24, Math.ceil((maxXAxis - minXAxis) * 2.2));
     const gridHelper = new THREE.GridHelper(gridSize, Math.min(36, gridSize), 0x1e3a5f, 0x132338);
@@ -248,262 +558,158 @@ export default function SolidOfRevolution3D() {
     scene.add(gridHelper);
 
     // X Axis line (Trục quay Ox)
-    const axisMatX = new THREE.LineBasicMaterial({ color: 0xf43f5e, linewidth: 2.5 });
-    const axisGeomX = new THREE.BufferGeometry().setFromPoints([
+    const xAxisGeom = new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(minXAxis, 0, 0),
       new THREE.Vector3(maxXAxis, 0, 0)
     ]);
-    const axisLineX = new THREE.Line(axisGeomX, axisMatX);
-    scene.add(axisLineX);
+    const xAxisMat = new THREE.LineBasicMaterial({ color: 0xef4444, linewidth: 3 });
+    const xAxisLine = new THREE.Line(xAxisGeom, xAxisMat);
+    scene.add(xAxisLine);
 
-    // Y Axis line (Trục tung Oy)
-    const axisMatY = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 2 });
-    const axisGeomY = new THREE.BufferGeometry().setFromPoints([
+    // X Arrowhead
+    const xConeGeom = new THREE.ConeGeometry(arrowConeRadius, arrowConeHeight, 16);
+    const xConeMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+    const xCone = new THREE.Mesh(xConeGeom, xConeMat);
+    xCone.position.set(maxXAxis + arrowConeHeight / 2, 0, 0);
+    xCone.rotation.z = -Math.PI / 2;
+    scene.add(xCone);
+
+    // Y Axis line (Oy)
+    const yAxisGeom = new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(0, minYAxis, 0),
       new THREE.Vector3(0, maxYAxis, 0)
     ]);
-    const axisLineY = new THREE.Line(axisGeomY, axisMatY);
-    scene.add(axisLineY);
+    const yAxisMat = new THREE.LineBasicMaterial({ color: 0x10b981, linewidth: 2 });
+    const yAxisLine = new THREE.Line(yAxisGeom, yAxisMat);
+    scene.add(yAxisLine);
 
-    // Dấu mũi tên 3D trục Ox (đỏ)
-    const arrowGeomX = new THREE.ConeGeometry(arrowConeRadius, arrowConeHeight, 16);
-    const arrowMatX = new THREE.MeshStandardMaterial({ 
-      color: 0xf43f5e, 
-      roughness: 0.25,
-      emissive: 0x9f1239,
-      emissiveIntensity: 0.35
-    });
-    const arrowMeshX = new THREE.Mesh(arrowGeomX, arrowMatX);
-    arrowMeshX.position.set(maxXAxis + arrowConeHeight / 2, 0, 0);
-    arrowMeshX.rotation.z = -Math.PI / 2;
-    scene.add(arrowMeshX);
+    // Y Arrowhead
+    const yConeGeom = new THREE.ConeGeometry(arrowConeRadius, arrowConeHeight, 16);
+    const yConeMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+    const yCone = new THREE.Mesh(yConeGeom, yConeMat);
+    yCone.position.set(0, maxYAxis + arrowConeHeight / 2, 0);
+    scene.add(yCone);
 
-    // Dấu mũi tên 3D trục Oy (xanh lá)
-    const arrowGeomY = new THREE.ConeGeometry(arrowConeRadius, arrowConeHeight, 16);
-    const arrowMatY = new THREE.MeshStandardMaterial({ 
-      color: 0x10b981, 
-      roughness: 0.25,
-      emissive: 0x065f46,
-      emissiveIntensity: 0.35
-    });
-    const arrowMeshY = new THREE.Mesh(arrowGeomY, arrowMatY);
-    arrowMeshY.position.set(0, maxYAxis + arrowConeHeight / 2, 0);
-    scene.add(arrowMeshY);
+    // Annotations
+    if (showLabels) {
+      const oxSprite = createAnnotationSprite('Trục quay (Ox)', { border: '#ef4444', textColor: '#fca5a5' });
+      oxSprite.position.set(maxXAxis + 1.2 * baseScale, 0, 0);
+      scene.add(oxSprite);
 
-    // 4. Generate Solid of Revolution Mesh
-    const xSteps = 45;
-    const phiSteps = 40;
-    const maxPhi = (sweepAngle * Math.PI) / 180;
+      const oySprite = createAnnotationSprite('Trục Oy', { border: '#10b981', textColor: '#86efac' });
+      oySprite.position.set(0, maxYAxis + 1.1 * baseScale, 0);
+      scene.add(oySprite);
 
-    const vertices = [];
-    const indices = [];
+      const curveFormulaSprite = createAnnotationSprite(
+        creativeMode === 'preset' ? selectedPreset.name : creativeMode === 'custom_math' ? `f(x) = ${customMathInput}` : 'Đường nặn tự do',
+        { border: '#fbbf24', textColor: '#fde68a' }
+      );
+      curveFormulaSprite.position.set(peakX, peakY + 0.9 * baseScale, 0);
+      scene.add(curveFormulaSprite);
 
-    const dx = (xMax - xMin) / xSteps;
-    const dPhi = maxPhi / phiSteps;
+      const boundASprite = createAnnotationSprite(`Cận a = ${boundA}`, { border: '#94a3b8', textColor: '#e2e8f0', worldHeight: 0.65 });
+      boundASprite.position.set(boundA, -0.9 * baseScale, 0);
+      scene.add(boundASprite);
 
-    if (xMax > xMin && maxPhi > 0) {
-      for (let i = 0; i <= xSteps; i++) {
-        const x = xMin + i * dx;
-        const r = Math.max(0.001, selectedPreset.fn(x));
-        for (let j = 0; j <= phiSteps; j++) {
-          const phi = j * dPhi;
-          const y = r * Math.cos(phi);
-          const z = r * Math.sin(phi);
-          vertices.push(x, y, z);
-        }
-      }
-
-      for (let i = 0; i < xSteps; i++) {
-        for (let j = 0; j < phiSteps; j++) {
-          const row1 = i * (phiSteps + 1);
-          const row2 = (i + 1) * (phiSteps + 1);
-
-          indices.push(row1 + j, row2 + j, row1 + j + 1);
-          indices.push(row2 + j, row2 + j + 1, row1 + j + 1);
-        }
-      }
+      const boundBSprite = createAnnotationSprite(`Cận b = ${boundB}`, { border: '#94a3b8', textColor: '#e2e8f0', worldHeight: 0.65 });
+      boundBSprite.position.set(boundB, -0.9 * baseScale, 0);
+      scene.add(boundBSprite);
     }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setIndex(indices);
-    geometry.computeVertexNormals();
-
-    const material = new THREE.MeshPhysicalMaterial({
-      color: 0x0284c7,
-      emissive: 0x0369a1,
-      emissiveIntensity: 0.18,
-      metalness: 0.15,
-      roughness: 0.25,
-      clearcoat: 0.8,
-      wireframe: isWireframe,
-      side: THREE.DoubleSide,
-      transparent: true,
-      opacity: 0.82,
-    });
-
-    const mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-
-    // Profile Curve: y = f(x)
+    // Generator curve y = f(x)
     const curveGeom = new THREE.BufferGeometry().setFromPoints(curvePoints);
     const curveMat = new THREE.LineBasicMaterial({ color: 0xfbbf24, linewidth: 3.5 });
-    const profileCurve = new THREE.Line(curveGeom, curveMat);
-    scene.add(profileCurve);
+    const curveLine = new THREE.Line(curveGeom, curveMat);
+    scene.add(curveLine);
 
-    // Boundary Rings at x = a and x = b
-    const createRing = (xVal, colorHex) => {
-      const r = Math.max(0.001, selectedPreset.fn(xVal));
-      const ringGeom = new THREE.BufferGeometry();
-      const pts = [];
-      const segs = 48;
-      for (let s = 0; s <= segs; s++) {
-        const a = (s / segs) * maxPhi;
-        pts.push(new THREE.Vector3(xVal, r * Math.cos(a), r * Math.sin(a)));
-      }
-      ringGeom.setFromPoints(pts);
-      const ringMat = new THREE.LineBasicMaterial({ color: colorHex, linewidth: 2.5 });
-      return new THREE.Line(ringGeom, ringMat);
-    };
+    // Solid of Revolution Geometry (Lathe with X alignment)
+    const points2D = [];
+    const numPoints = 80;
+    for (let i = 0; i <= numPoints; i++) {
+      const x = boundA + (i / numPoints) * shapeLength;
+      const y = Math.max(0.001, activeFn(x));
+      points2D.push(new THREE.Vector2(y, x));
+    }
 
-    scene.add(createRing(boundA, 0x38bdf8));
-    scene.add(createRing(boundB, 0x38bdf8));
+    const phiLength = (sweepAngle / 360) * Math.PI * 2;
+    const latheGeom = new THREE.LatheGeometry(points2D, 64, 0, phiLength);
+    latheGeom.computeVertexNormals();
 
-    // 5. Dynamic Cross-Section Disc (Thiết diện S(x) = π·r²)
+    const latheMat = new THREE.MeshPhysicalMaterial({
+      color: creativeMode === 'draw_spline' ? 0x06b6d4 : 0x0284c7,
+      transparent: true,
+      opacity: isWireframe ? 0.35 : 0.85,
+      roughness: 0.2,
+      metalness: 0.25,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.15,
+      transmission: 0.5,
+      ior: 1.35,
+      wireframe: isWireframe,
+      side: THREE.DoubleSide
+    });
+
+    const latheMesh = new THREE.Mesh(latheGeom, latheMat);
+    latheMesh.rotation.z = -Math.PI / 2;
+    scene.add(latheMesh);
+
+    // Dynamic Slicing Disk S(x)
+    let sliceGroup = new THREE.Group();
     if (showSlice && sliceX >= boundA && sliceX <= boundB) {
-      const r = Math.max(0.001, selectedPreset.fn(sliceX));
-      
-      const discGeom = new THREE.CircleGeometry(r, 48, 0, maxPhi);
-      const discMat = new THREE.MeshStandardMaterial({
+      const currentRadius = Math.max(0.001, activeFn(sliceX));
+      const diskGeom = new THREE.CircleGeometry(currentRadius, 48);
+      const diskMat = new THREE.MeshBasicMaterial({
         color: 0x10b981,
-        emissive: 0x059669,
-        emissiveIntensity: 0.4,
         transparent: true,
-        opacity: 0.75,
+        opacity: 0.65,
         side: THREE.DoubleSide
       });
-      const discMesh = new THREE.Mesh(discGeom, discMat);
-      discMesh.position.set(sliceX, 0, 0);
-      discMesh.rotation.y = Math.PI / 2;
-      scene.add(discMesh);
+      const diskMesh = new THREE.Mesh(diskGeom, diskMat);
+      diskMesh.rotation.y = Math.PI / 2;
+      diskMesh.position.set(sliceX, 0, 0);
+      sliceGroup.add(diskMesh);
 
-      // Rim
-      const rimGeom = new THREE.BufferGeometry();
-      const rimPts = [];
-      for (let s = 0; s <= 48; s++) {
-        const phi = (s / 48) * maxPhi;
-        rimPts.push(new THREE.Vector3(sliceX, r * Math.cos(phi), r * Math.sin(phi)));
-      }
-      rimGeom.setFromPoints(rimPts);
-      const rimMat = new THREE.LineBasicMaterial({ color: 0x34d399, linewidth: 3 });
-      scene.add(new THREE.Line(rimGeom, rimMat));
+      const ringGeom = new THREE.RingGeometry(Math.max(0.001, currentRadius - 0.05), currentRadius + 0.05, 48);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0x34d399, side: THREE.DoubleSide });
+      const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+      ringMesh.rotation.y = Math.PI / 2;
+      ringMesh.position.set(sliceX, 0, 0);
+      sliceGroup.add(ringMesh);
 
-      // Radius line: r = f(x)
-      const radiusGeom = new THREE.BufferGeometry().setFromPoints([
+      const radiusPoints = [
         new THREE.Vector3(sliceX, 0, 0),
-        new THREE.Vector3(sliceX, r, 0)
-      ]);
+        new THREE.Vector3(sliceX, currentRadius, 0)
+      ];
+      const radiusGeom = new THREE.BufferGeometry().setFromPoints(radiusPoints);
       const radiusMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, linewidth: 3.5 });
-      scene.add(new THREE.Line(radiusGeom, radiusMat));
+      const radiusLine = new THREE.Line(radiusGeom, radiusMat);
+      sliceGroup.add(radiusLine);
 
-      // Center dot & Rim dot
-      const centerDotGeom = new THREE.SphereGeometry(0.2, 16, 16);
-      const dotMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
-      const centerDot = new THREE.Mesh(centerDotGeom, dotMat);
-      centerDot.position.set(sliceX, 0, 0);
-      scene.add(centerDot);
-
-      const rimDot = new THREE.Mesh(centerDotGeom, dotMat);
-      rimDot.position.set(sliceX, r, 0);
-      scene.add(rimDot);
-    }
-
-    // 6. Educational 3D Annotation Labels & Symbols
-    if (showLabels) {
-      // Label: Trục quay Ox (Positioned right after the dynamic arrow)
-      const labelOx = createAnnotationSprite('Trục quay Ox ➜', {
-        bg: 'rgba(225, 29, 72, 0.95)',
-        border: '#fda4af',
-        worldHeight: 0.75 * baseScale
-      });
-      labelOx.position.set(maxXAxis + arrowConeHeight + 0.9 * baseScale, -0.6 * baseScale, 0);
-      scene.add(labelOx);
-
-      // Label: Trục Oy (Positioned right above the dynamic arrow)
-      const labelOy = createAnnotationSprite('Trục Oy ⬆', {
-        bg: 'rgba(5, 150, 105, 0.95)',
-        border: '#6ee7b7',
-        worldHeight: 0.75 * baseScale
-      });
-      labelOy.position.set(0, maxYAxis + arrowConeHeight + 0.55 * baseScale, 0);
-      scene.add(labelOy);
-
-      // Label: Gốc O(0,0) (offset to avoid overlapping with Cận a)
-      if (Math.abs(boundA) > 1.0) {
-        const labelO = createAnnotationSprite('O(0,0)', {
-          bg: 'rgba(30, 41, 59, 0.92)',
-          border: '#94a3b8',
-          worldHeight: 0.7 * baseScale
+      if (showLabels) {
+        const sxSprite = createAnnotationSprite(`S(x) = π·[f(x)]² = ${(Math.PI * currentRadius * currentRadius).toFixed(1)}`, {
+          border: '#10b981',
+          textColor: '#6ee7b7',
+          worldHeight: 0.7
         });
-        labelO.position.set(0, -1.0 * baseScale, 0);
-        scene.add(labelO);
-      }
+        sxSprite.position.set(sliceX, -currentRadius - 0.8 * baseScale, 0);
+        sliceGroup.add(sxSprite);
 
-      // Label: Cận a (Nếu a = 0 thì hiển thị rõ O ≡ a)
-      const labelAText = boundA === 0 ? 'O ≡ Cận a (0)' : `Cận x = a (${boundA})`;
-      const labelA = createAnnotationSprite(labelAText, {
-        bg: 'rgba(2, 132, 199, 0.95)',
-        border: '#7dd3fc',
-        worldHeight: 0.75 * baseScale
-      });
-      labelA.position.set(boundA, -1.5 * baseScale, 0);
-      scene.add(labelA);
-
-      // Label: Cận b
-      const labelB = createAnnotationSprite(`Cận x = b (${boundB})`, {
-        bg: 'rgba(2, 132, 199, 0.95)',
-        border: '#7dd3fc',
-        worldHeight: 0.75 * baseScale
-      });
-      labelB.position.set(boundB, -1.5 * baseScale, 0);
-      scene.add(labelB);
-
-      // Label: Đường sinh y = f(x)
-      const labelCurve = createAnnotationSprite('Đường sinh y = f(x)', {
-        bg: 'rgba(217, 119, 6, 0.95)',
-        border: '#fde047',
-        worldHeight: 0.8 * baseScale
-      });
-      labelCurve.position.set(peakX, peakY + 0.85 * baseScale, 0);
-      scene.add(labelCurve);
-
-      // Label: Bán kính và Thiết diện lát cắt
-      if (showSlice) {
-        // Radius label (offset in Z so it pops in front clearly!)
-        const labelRadius = createAnnotationSprite(`r = f(x) = ${sliceRadius.toFixed(2)}`, {
-          bg: 'rgba(180, 83, 9, 0.95)',
-          border: '#fbbf24',
-          worldHeight: 0.72 * baseScale
+        const rSprite = createAnnotationSprite(`r = ${currentRadius.toFixed(2)}`, {
+          border: '#f59e0b',
+          textColor: '#fde68a',
+          worldHeight: 0.6
         });
-        labelRadius.position.set(sliceX, sliceRadius / 2, 1.0 * baseScale);
-        scene.add(labelRadius);
-
-        // Disc Area label (generous padding, placed clearly above the disc)
-        const labelSlice = createAnnotationSprite(`Thiết diện S(x) = π·r² = ${sliceArea.toFixed(1)}`, {
-          bg: 'rgba(6, 95, 70, 0.95)',
-          border: '#34d399',
-          worldHeight: 0.8 * baseScale
-        });
-        labelSlice.position.set(sliceX, sliceRadius + 1.2 * baseScale, 0);
-        scene.add(labelSlice);
+        rSprite.position.set(sliceX, currentRadius / 2, 0.4 * baseScale);
+        sliceGroup.add(rSprite);
       }
     }
+    scene.add(sliceGroup);
 
-    // 7. Mouse Orbit & Wheel Zoom
+    // Orbit Controls (Mouse Drag & Rotation)
     let isDragging = false;
     let prevMouse = { x: 0, y: 0 };
     let rotX = 0.35;
-    let rotY = -0.55;
+    let rotY = 0.45;
 
     const onMouseDown = (e) => {
       isDragging = true;
@@ -512,49 +718,36 @@ export default function SolidOfRevolution3D() {
 
     const onMouseMove = (e) => {
       if (!isDragging) return;
-      const deltaX = e.clientX - prevMouse.x;
-      const deltaY = e.clientY - prevMouse.y;
-      rotY += deltaX * 0.008;
-      rotX += deltaY * 0.008;
+      rotY += (e.clientX - prevMouse.x) * 0.008;
+      rotX += (e.clientY - prevMouse.y) * 0.008;
+      rotX = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, rotX));
       prevMouse = { x: e.clientX, y: e.clientY };
     };
 
     const onMouseUp = () => { isDragging = false; };
 
-    // Scroll wheel zoom event on canvas!
     const onWheel = (e) => {
       e.preventDefault();
-      setZoomRadius((curr) => {
-        const delta = e.deltaY > 0 ? 1.8 : -1.8;
-        return Math.min(50, Math.max(12, curr + delta));
-      });
+      setZoomRadius((r) => Math.max(12, Math.min(50, r + e.deltaY * 0.02)));
     };
 
     container.addEventListener('mousedown', onMouseDown);
-    container.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    container.addEventListener('wheel', onWheel, { passive: false });
 
-    const handleResize = () => {
-      if (!container) return;
-      const w = container.clientWidth;
-      camera.aspect = w / height;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, height);
-    };
-    window.addEventListener('resize', handleResize);
-
+    // Animation Loop
     let animId;
     const animate = () => {
       animId = requestAnimationFrame(animate);
       if (autoRotate && !isDragging) {
-        rotY += 0.005;
+        rotY += 0.004;
       }
-      
-      // Update camera position with dynamic zoomRadius
-      camera.position.x = midX + zoomRadius * Math.cos(rotX) * Math.sin(rotY);
-      camera.position.y = zoomRadius * Math.sin(rotX);
-      camera.position.z = zoomRadius * Math.cos(rotX) * Math.cos(rotY);
+
+      const r = zoomRadius;
+      camera.position.x = midX + r * Math.cos(rotX) * Math.sin(rotY);
+      camera.position.y = r * Math.sin(rotX);
+      camera.position.z = r * Math.cos(rotX) * Math.cos(rotY);
       camera.lookAt(midX, 0, 0);
 
       renderer.render(scene, camera);
@@ -564,67 +757,48 @@ export default function SolidOfRevolution3D() {
     return () => {
       cancelAnimationFrame(animId);
       container.removeEventListener('mousedown', onMouseDown);
-      container.removeEventListener('wheel', onWheel);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('resize', handleResize);
-      geometry.dispose();
-      material.dispose();
+      container.removeEventListener('wheel', onWheel);
       renderer.dispose();
     };
-  }, [selectedPreset, boundA, boundB, sweepAngle, isWireframe, autoRotate, showLabels, showSlice, sliceX, zoomRadius]);
+  }, [selectedPreset, boundA, boundB, sweepAngle, isWireframe, autoRotate, showLabels, showSlice, sliceX, zoomRadius, activeFn, creativeMode]);
 
-  const handleSelectPreset = (p) => {
-    setSelectedPreset(p);
-    setBoundA(p.defaultA);
-    setBoundB(p.defaultB);
-    setSliceX((p.defaultA + p.defaultB) / 2);
-    setZoomRadius(p.defaultZoom || 24);
-  };
-
-  // Zoom percentage display
   const zoomPercent = Math.round((DEFAULT_ZOOM / zoomRadius) * 100);
 
   return (
-    <div className="bg-white border border-sky-100 rounded-2xl overflow-hidden shadow-sm">
-      {/* Header bar */}
-      <div className="p-4 border-b border-sky-100 flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-sky-50/70 to-blue-50/50">
+    <div className="bg-white border border-sky-100 rounded-3xl overflow-hidden shadow-sm">
+      {/* Top Banner Toolbar */}
+      <div className="p-4 sm:p-5 border-b border-sky-100 bg-gradient-to-r from-sky-50 via-blue-50/50 to-white flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
-            <h3 className="font-bold text-slate-800 text-base md:text-lg">
-              Phòng Thí Nghiệm 3D: Khối Tròn Xoay Kèm Ký Hiệu & Phóng To/Thu Nhỏ
-            </h3>
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-600 text-white">
+              Phòng Thí Nghiệm 3D
+            </span>
+            <span className="text-xs text-blue-700 font-bold">• Khối Tròn Xoay & Tích Phân Riemann</span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Trực quan hóa công thức SGK:{' '}
-            <MathView math="V = \pi \int_a^b [f(x)]^2 dx = \int_a^b S(x) dx" className="text-blue-700 font-mono font-semibold" />
-          </p>
+          <h3 className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
+            Mô Phỏng Trực Quan Sự Hình Thành Khối Tròn Xoay Quanh Trục Ox
+          </h3>
         </div>
 
-        {/* Feature Toggles */}
-        <div className="flex items-center flex-wrap gap-2">
+        {/* View Controls */}
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setShowLabels(!showLabels)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              showLabels 
-                ? 'bg-amber-500 text-white shadow-xs' 
-                : 'bg-white border border-sky-200 text-slate-600 hover:bg-sky-50'
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+              showLabels ? 'bg-sky-600 text-white shadow-xs' : 'bg-white border border-sky-200 text-slate-700 hover:bg-sky-50'
             }`}
-            title="Bật/Tắt ký hiệu tọa độ, cận a, b, đường sinh và bán kính"
           >
             <Tag className="w-3.5 h-3.5" />
-            {showLabels ? 'Ký Hiệu: Bật' : 'Ký Hiệu: Tắt'}
+            {showLabels ? 'Nhãn: Bật' : 'Nhãn: Tắt'}
           </button>
 
           <button
             onClick={() => setShowSlice(!showSlice)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              showSlice 
-                ? 'bg-emerald-600 text-white shadow-xs' 
-                : 'bg-white border border-sky-200 text-slate-600 hover:bg-sky-50'
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer ${
+              showSlice ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white border border-sky-200 text-slate-700 hover:bg-sky-50'
             }`}
-            title="Bật/Tắt lát cắt thiết diện tròn S(x)"
           >
             <Disc className="w-3.5 h-3.5" />
             {showSlice ? 'Lát Cắt S(x): Bật' : 'Lát Cắt S(x): Tắt'}
@@ -652,22 +826,161 @@ export default function SolidOfRevolution3D() {
         </div>
       </div>
 
-      {/* Preset Buttons */}
-      <div className="p-3 bg-sky-50/40 border-b border-sky-100 flex flex-wrap gap-2">
-        {PRESETS.map((p) => (
+      {/* Mode Selector Bar: Presets vs Custom Math vs Draw Spline */}
+      <div className="p-3 bg-slate-50 border-b border-sky-100 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
           <button
-            key={p.id}
-            onClick={() => handleSelectPreset(p)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-              selectedPreset.id === p.id
-                ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                : 'bg-white border border-sky-200 text-slate-600 hover:text-blue-700 hover:bg-sky-50'
+            onClick={() => setCreativeMode('preset')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              creativeMode === 'preset'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            {p.name}
+            <Sliders className="w-3.5 h-3.5" />
+            1. Hàm Mẫu SGK
           </button>
-        ))}
+
+          <button
+            onClick={() => setCreativeMode('custom_math')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              creativeMode === 'custom_math'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            2. Tự Nhập Hàm Số
+          </button>
+
+          <button
+            onClick={() => {
+              setCreativeMode('draw_spline');
+              setBoundA(0);
+              setBoundB(12);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              creativeMode === 'draw_spline'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <PenTool className="w-3.5 h-3.5" />
+            3. Nặn Gốm Bằng Chuột (Vẽ Tự Do)
+          </button>
+        </div>
+
+        {/* Status Mode Badge */}
+        <span className="text-[11px] font-semibold text-slate-500 hidden sm:inline-block">
+          {creativeMode === 'preset' && '4 hàm số kinh điển SGK KNTT'}
+          {creativeMode === 'custom_math' && 'Nhập biểu thức toán học bất kỳ f(x)'}
+          {creativeMode === 'draw_spline' && 'Kéo các điểm nút P1 - P5 để tạo dáng chiếc bình'}
+        </span>
       </div>
+
+      {/* Sub-bar for Creative Mode 1: Presets */}
+      {creativeMode === 'preset' && (
+        <div className="p-3 bg-sky-50/30 border-b border-sky-100 flex flex-wrap gap-2">
+          {PRESETS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => {
+                setSelectedPreset(p);
+                setBoundA(p.defaultA);
+                setBoundB(p.defaultB);
+                setZoomRadius(p.defaultZoom || 24);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                selectedPreset.id === p.id
+                  ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                  : 'bg-white border border-sky-200 text-slate-600 hover:text-blue-700 hover:bg-sky-50'
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Sub-bar for Creative Mode 2: Custom Math */}
+      {creativeMode === 'custom_math' && (
+        <div className="p-4 bg-gradient-to-r from-blue-50/70 via-sky-50/50 to-indigo-50/50 border-b border-sky-100 space-y-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <span className="text-xs font-bold text-slate-700 shrink-0">Nhập hàm số:</span>
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-2.5 text-xs font-mono font-bold text-blue-600">f(x) =</span>
+              <input
+                type="text"
+                value={customMathInput}
+                onChange={(e) => setCustomMathInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCustomMath(); }}
+                placeholder="2 + cos(x), sqrt(4 - x^2), 1.5 + 0.1*x^2..."
+                className="w-full pl-16 pr-3 py-2 bg-white rounded-xl border border-sky-200 text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-blue-500 shadow-2xs"
+              />
+            </div>
+            <button
+              onClick={() => handleApplyCustomMath()}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+            >
+              <Check className="w-3.5 h-3.5" />
+              <span>Tạo Khối 3D</span>
+            </button>
+          </div>
+
+          {/* Quick suggestions */}
+          <div className="flex items-center gap-2 flex-wrap text-[11px]">
+            <span className="text-slate-500 font-medium">Gợi ý mẫu:</span>
+            {MATH_SUGGESTIONS.map((s, sIdx) => (
+              <button
+                key={sIdx}
+                onClick={() => {
+                  setCustomMathInput(s.expr);
+                  handleApplyCustomMath(s.expr, s.a, s.b);
+                }}
+                className="px-2.5 py-1 rounded-lg bg-white hover:bg-sky-100 border border-sky-200 text-slate-700 font-mono transition-colors cursor-pointer"
+              >
+                {s.label} ({s.expr})
+              </button>
+            ))}
+          </div>
+
+          {customMathError && (
+            <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{customMathError}. Vui lòng thử lại với các phép tính như: sin, cos, sqrt, exp, ^.</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sub-bar for Creative Mode 3: Draw Spline */}
+      {creativeMode === 'draw_spline' && (
+        <div className="p-4 bg-gradient-to-r from-sky-50 via-cyan-50/50 to-white border-b border-sky-100 space-y-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs text-slate-700">
+              <Sparkles className="w-4 h-4 text-cyan-600 shrink-0" />
+              <span><strong>Kéo thả các chấm tròn P1 - P5 trên mặt phẳng 2D</strong> để nặn dáng bình hoa theo ý bạn! Khối 3D bên dưới sẽ xoay theo thời gian thực.</span>
+            </div>
+            <button
+              onClick={() => setSplinePoints(DEFAULT_SPLINE_POINTS)}
+              className="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-cyan-700 bg-white border border-slate-200 hover:bg-cyan-50 flex items-center gap-1 cursor-pointer transition-colors shrink-0"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Đặt lại dáng bình</span>
+            </button>
+          </div>
+
+          {/* Interactive 2D Profile Canvas */}
+          <div className="bg-white rounded-2xl border border-sky-200 p-2 shadow-2xs overflow-hidden flex justify-center">
+            <canvas
+              ref={splineCanvasRef}
+              width={640}
+              height={180}
+              className="w-full max-w-2xl h-[180px] cursor-crosshair select-none"
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main interactive area: 3D Canvas + Live Math Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-4">
@@ -675,12 +988,12 @@ export default function SolidOfRevolution3D() {
         <div className="lg:col-span-3 relative cursor-grab active:cursor-grabbing bg-[#0c192c]">
           <div ref={containerRef} className="w-full h-[500px]" />
           
-          {/* Floating Zoom In / Zoom Out Toolbar on Top Right */}
+          {/* Floating Zoom Toolbar on Top Right */}
           <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-700 flex items-center gap-1 shadow-xl">
             <button
               onClick={handleZoomIn}
               className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
-              title="Phóng to vật thể (hoặc cuộn chuột lên)"
+              title="Phóng to vật thể"
             >
               <ZoomIn className="w-4 h-4 text-cyan-400" />
               <span className="hidden sm:inline">Phóng to</span>
@@ -693,7 +1006,7 @@ export default function SolidOfRevolution3D() {
             <button
               onClick={handleZoomOut}
               className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
-              title="Thu nhỏ vật thể (hoặc cuộn chuột xuống)"
+              title="Thu nhỏ vật thể"
             >
               <ZoomOut className="w-4 h-4 text-cyan-400" />
               <span className="hidden sm:inline">Thu nhỏ</span>
@@ -702,7 +1015,7 @@ export default function SolidOfRevolution3D() {
             <button
               onClick={handleResetZoom}
               className="p-2 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-colors cursor-pointer"
-              title="Đặt lại mức thu phóng mặc định"
+              title="Đặt lại zoom mặc định"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -720,7 +1033,7 @@ export default function SolidOfRevolution3D() {
               <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Bán kính r = f(x)
             </span>
             <span className="text-slate-500">|</span>
-            <span className="text-cyan-300 font-medium">Cuộn chuột hoặc bấm nút để phóng to/thu nhỏ</span>
+            <span className="text-cyan-300 font-medium">Kéo chuột xoay 360° • Cuộn chuột để zoom</span>
           </div>
         </div>
 
@@ -728,9 +1041,9 @@ export default function SolidOfRevolution3D() {
         <div className="p-4 border-t lg:border-t-0 lg:border-l border-sky-100 bg-sky-50/30 flex flex-col justify-between space-y-4">
           <div className="space-y-4">
             <div>
-              <span className="text-xs font-semibold text-slate-600 block mb-1">Hàm số đường sinh:</span>
-              <div className="bg-white p-2.5 rounded-xl border border-sky-200 text-blue-700 text-center font-mono shadow-xs">
-                <MathView math={selectedPreset.fnStr} block />
+              <span className="text-xs font-semibold text-slate-600 block mb-1">Đường sinh quay quanh Ox:</span>
+              <div className="bg-white p-2.5 rounded-xl border border-sky-200 text-blue-700 text-center font-mono shadow-xs overflow-x-auto scrollbar-none">
+                <MathView math={activeFnStr} block />
               </div>
             </div>
 
@@ -740,7 +1053,7 @@ export default function SolidOfRevolution3D() {
                 <div className="flex justify-between text-xs items-center">
                   <span className="text-emerald-900 font-bold flex items-center gap-1">
                     <Disc className="w-3.5 h-3.5 text-emerald-600" />
-                    Vị trí lát cắt x:
+                    Lát cắt tại x:
                   </span>
                   <span className="text-emerald-800 font-black font-mono bg-white px-2 py-0.5 rounded border border-emerald-200">
                     x = {sliceX.toFixed(1)}
@@ -770,7 +1083,7 @@ export default function SolidOfRevolution3D() {
               </div>
               <input
                 type="range"
-                min={selectedPreset.minA}
+                min={creativeMode === 'preset' ? selectedPreset.minA : -5}
                 max={boundB - 0.5}
                 step="0.5"
                 value={boundA}
@@ -788,7 +1101,7 @@ export default function SolidOfRevolution3D() {
               <input
                 type="range"
                 min={boundA + 0.5}
-                max={selectedPreset.maxB}
+                max={creativeMode === 'preset' ? selectedPreset.maxB : 20}
                 step="0.5"
                 value={boundB}
                 onChange={(e) => setBoundB(parseFloat(e.target.value))}
@@ -821,10 +1134,10 @@ export default function SolidOfRevolution3D() {
                 Tổng Thể Tích Khối 3D (V):
               </span>
               <div className="text-2xl font-black text-slate-900 mt-0.5">
-                {volume} <span className="text-xs text-slate-500 font-normal">{selectedPreset.unit}³</span>
+                {volume} <span className="text-xs text-slate-500 font-normal">{selectedPreset.unit || 'đvtt'}</span>
               </div>
               <p className="text-[10px] text-slate-500 mt-1">
-                Tích phân toàn phần của các thiết diện <MathView math="S(x)dx" /> từ a đến b.
+                Công thức: <MathView math="V = \pi \int_a^b [f(x)]^2 dx" />
               </p>
             </div>
           </div>
